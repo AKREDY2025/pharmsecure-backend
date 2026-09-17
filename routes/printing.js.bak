@@ -1,0 +1,238 @@
+const express = require('express');
+const router = express.Router();
+const pool = require('../db');
+const QRCode = require('qrcode');
+const PDFDocument = require('pdfkit');
+
+// Middleware to verify token
+const authenticateToken = (req, res, next) => {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1] || req.query.token;
+  if (!token) return res.sendStatus(401);
+  next();
+};
+
+// Generate receipt data for an order
+const getReceiptData = async (orderId) => {
+  try {
+    const order = await pool.query(
+      'SELECT po.*, u.username as seller_name FROM pending_orders po LEFT JOIN users u ON po.seller_id = u.id WHERE po.id = $1',
+      [orderId]
+    );
+
+    if (order.rows.length === 0) return null;
+
+    const orderData = order.rows[0];
+    const items = typeof orderData.items_json === 'string' ? JSON.parse(orderData.items_json || '[]') : (orderData.items_json || []);
+
+    const itemsWithDetails = await Promise.all(
+      items.map(async (item) => {
+        const product = await pool.query('SELECT * FROM products WHERE id = $1', [item.product_id]);
+        return {
+          ...item,
+          product_name: product.rows[0]?.name || 'Unknown',
+          unit_price: product.rows[0]?.unit_price || item.unit_price || 0,
+        };
+      })
+    );
+
+    return {
+      order_id: orderData.id,
+      customer_name: orderData.customer_name || 'Walk-in',
+      customer_phone: orderData.customer_phone || 'N/A',
+      seller_name: orderData.seller_name || 'N/A',
+      items: itemsWithDetails,
+      subtotal: orderData.subtotal,
+      tax: orderData.tax,
+      total_amount: orderData.total_amount,
+      created_at: orderData.created_at,
+      payment_method: orderData.payment_method || 'Not specified',
+      status: orderData.status
+    };
+  } catch (error) {
+    console.error('Error fetching receipt:', error);
+    throw error;
+  }
+};
+
+// GET /api/printing/receipt/:order_id
+router.get('/receipt/:order_id', authenticateToken, async (req, res) => {
+  try {
+    const receipt = await getReceiptData(req.params.order_id);
+    if (!receipt) return res.status(404).json({ error: 'Order not found' });
+    res.json(receipt);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch receipt', details: error.message });
+  }
+});
+
+// GET /api/printing/qr/:order_id
+router.get('/qr/:order_id', authenticateToken, async (req, res) => {
+  try {
+    const qrData = `PharmSecure Order ${req.params.order_id}`;
+    const qrImage = await QRCode.toDataURL(qrData);
+    res.json({ qr_code: qrImage });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to generate QR', details: error.message });
+  }
+});
+
+// GET /api/printing/pdf/:order_id - SIMPLE & CLEAN PDF
+router.get('/pdf/:order_id', authenticateToken, async (req, res) => {
+  try {
+    const receipt = await getReceiptData(req.params.order_id);
+    if (!receipt) return res.status(404).json({ error: 'Order not found' });
+
+    const doc = new PDFDocument({ size: 'A4', margin: 40 });
+    const filename = `Receipt-${receipt.order_id}.pdf`;
+
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+
+    doc.pipe(res);
+    
+    // === HEADER ===
+    doc.fontSize(18).font('Helvetica-Bold').text('PHARMSECURE PHARMACY', { align: 'center' });
+    doc.fontSize(10).font('Helvetica').text('Professional Pharmacy System', { align: 'center' });
+    doc.moveDown(0.5);
+    
+    // Line separator
+    doc.moveTo(40, doc.y).lineTo(560, doc.y).stroke();
+    doc.moveDown(0.5);
+
+    // === RECEIPT INFO ===
+    doc.fontSize(11).font('Helvetica-Bold').text(`Receipt #${receipt.order_id}`);
+    doc.fontSize(10).font('Helvetica').text(`Date: ${new Date(receipt.created_at).toLocaleString()}`);
+    doc.moveDown(0.5);
+
+    // === CUSTOMER INFO ===
+    doc.fontSize(10).font('Helvetica-Bold').text('CUSTOMER INFORMATION');
+    doc.fontSize(9).font('Helvetica');
+    doc.text(`Name: ${receipt.customer_name}`);
+    doc.text(`Phone: ${receipt.customer_phone}`);
+    doc.text(`Seller: ${receipt.seller_name}`);
+    doc.moveDown(0.5);
+
+    // Line separator
+    doc.moveTo(40, doc.y).lineTo(560, doc.y).stroke();
+    doc.moveDown(0.5);
+
+    // === ITEMS TABLE ===
+    if (receipt.items && receipt.items.length > 0) {
+      doc.fontSize(9).font('Helvetica-Bold');
+      doc.text('ITEMS', 40);
+      doc.moveDown(0.3);
+      
+      // Table header
+      doc.fontSize(8).font('Helvetica-Bold');
+      doc.text('Product', 40, doc.y, {width: 250});
+      doc.text('Qty', 290, doc.y - 12, {width: 50, align: 'center'});
+      doc.text('Price', 340, doc.y - 12, {width: 70, align: 'right'});
+      doc.text('Total', 410, doc.y - 12, {width: 70, align: 'right'});
+      doc.moveDown(0.4);
+      
+      // Line separator
+      doc.moveTo(40, doc.y).lineTo(560, doc.y).stroke();
+      doc.moveDown(0.3);
+
+      // Items
+      doc.fontSize(8).font('Helvetica');
+      receipt.items.forEach((item) => {
+        const total = (item.quantity * parseFloat(item.unit_price)).toFixed(2);
+        doc.text(item.product_name.substring(0, 30), 40, doc.y, {width: 250});
+        doc.text(item.quantity.toString(), 290, doc.y - 11, {width: 50, align: 'center'});
+        doc.text(`${parseFloat(item.unit_price).toFixed(2)}`, 340, doc.y - 11, {width: 70, align: 'right'});
+        doc.text(`${total}`, 410, doc.y - 11, {width: 70, align: 'right'});
+        doc.moveDown(0.4);
+      });
+
+      // Line separator
+      doc.moveTo(40, doc.y).lineTo(560, doc.y).stroke();
+      doc.moveDown(0.3);
+    }
+
+    // === TOTALS ===
+    doc.fontSize(9).font('Helvetica');
+    doc.text('Subtotal:', 340, doc.y, {width: 70, align: 'right'});
+    doc.text(`${parseFloat(receipt.subtotal).toFixed(2)}`, 410, doc.y - 12, {width: 70, align: 'right'});
+    doc.moveDown(0.3);
+    
+    doc.text('Tax (15%):', 340, doc.y, {width: 70, align: 'right'});
+    doc.text(`${parseFloat(receipt.tax).toFixed(2)}`, 410, doc.y - 12, {width: 70, align: 'right'});
+    doc.moveDown(0.3);
+    
+    doc.fontSize(11).font('Helvetica-Bold');
+    doc.text('TOTAL:', 340, doc.y, {width: 70, align: 'right'});
+    doc.text(`${parseFloat(receipt.total_amount).toFixed(2)}`, 410, doc.y - 13, {width: 70, align: 'right'});
+    doc.moveDown(0.5);
+
+    // Line separator
+    doc.moveTo(40, doc.y).lineTo(560, doc.y).stroke();
+    doc.moveDown(0.8);
+
+    // === QR CODE ===
+    const qrData = `PharmSecure Order ${receipt.order_id}`;
+    const qrImage = await QRCode.toDataURL(qrData);
+    doc.image(qrImage, 210, doc.y, { width: 100, height: 100 });
+    doc.moveDown(6.5);
+
+    // === FOOTER ===
+    doc.moveTo(40, doc.y).lineTo(560, doc.y).stroke();
+    doc.moveDown(0.3);
+    doc.fontSize(9).font('Helvetica').text('Thank you for your business!', { align: 'center' });
+    doc.fontSize(8).font('Helvetica').text('PharmSecure | www.pharmsecure.com', { align: 'center' });
+
+    doc.end();
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to generate PDF', details: error.message });
+  }
+});
+
+// GET /api/printing/receipts
+router.get('/receipts', authenticateToken, async (req, res) => {
+  try {
+    const limit = req.query.limit || 20;
+    const orders = await pool.query(
+      'SELECT id as order_id, customer_name, total_amount, created_at, status FROM pending_orders WHERE status IN ($1, $2) ORDER BY status DESC, created_at DESC LIMIT $3',
+      ['COMPLETED', 'DRAFT', limit]
+    );
+    res.json(orders.rows);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch receipts', details: error.message });
+  }
+});
+
+// GET /api/printing/stats
+router.get('/stats', authenticateToken, async (req, res) => {
+  try {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const total = await pool.query(
+      'SELECT COUNT(*) as count FROM pending_orders WHERE status IN ($1, $2)',
+      ['COMPLETED', 'DRAFT']
+    );
+    
+    const todayCount = await pool.query(
+      'SELECT COUNT(*) as count FROM pending_orders WHERE status IN ($1, $2) AND created_at >= $3',
+      ['COMPLETED', 'DRAFT', today]
+    );
+    
+    const weekAgo = new Date();
+    weekAgo.setDate(weekAgo.getDate() - 7);
+    
+    const weekCount = await pool.query(
+      'SELECT COUNT(*) as count FROM pending_orders WHERE status IN ($1, $2) AND created_at >= $3',
+      ['COMPLETED', 'DRAFT', weekAgo]
+    );
+    
+    res.json({ 
+      total_receipts: parseInt(total.rows[0].count),
+      today_receipts: parseInt(todayCount.rows[0].count),
+      week_receipts: parseInt(weekCount.rows[0].count)
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch stats', details: error.message });
+  }
+});
+

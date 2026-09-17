@@ -1,0 +1,6 @@
+                    <div class="action-buttons">
+                        <button class="action-button" onclick="downloadPDF()">📥 Download PDF</button>
+                        <button class="action-button secondary" onclick="window.print()">🖨️ Print</button>
+                        <button class="action-button" onclick="showEmailDialog()">📧 Email Receipt</button>
+                        <button class="action-button" onclick="showSMSDialog()">📱 SMS Receipt</button>
+                    </div>

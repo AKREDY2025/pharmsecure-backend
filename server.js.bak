@@ -1,0 +1,72 @@
+require('dotenv').config();
+const express = require('express');
+const cors = require('cors');
+const helmet = require('helmet');
+const morgan = require('morgan');
+const bodyParser = require('body-parser');
+const pool = require('./db');
+
+const authRoutes = require('./routes/auth');
+const pendingOrdersRoutes = require('./routes/pending-orders');
+const productsRoutes = require('./routes/products');
+const batchesRoutes = require('./routes/batches');
+const dashboardRoutes = require('./routes/dashboard');
+const reportsRoutes = require('./routes/reports');
+const inventoryRoutes = require('./routes/inventory');
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+app.use(helmet());
+app.use(cors({
+  origin: ['http://localhost:8000', 'http://127.0.0.1:8000', '*'],
+  credentials: true
+}));
+app.use(morgan('combined'));
+app.use(bodyParser.json({ limit: '10mb' }));
+app.use(bodyParser.urlencoded({ limit: '10mb', extended: true }));
+
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'OK', timestamp: new Date() });
+});
+
+app.use('/api/auth', authRoutes);
+app.use('/api/pending-orders', pendingOrdersRoutes);
+app.use('/api/products', productsRoutes);
+app.use('/api/batches', batchesRoutes);
+app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/reports', reportsRoutes);
+app.use('/api/inventory', inventoryRoutes);
+
+app.use((req, res) => {
+  res.status(404).json({ success: false, message: 'Endpoint not found' });
+});
+
+app.use((err, req, res, next) => {
+  console.error('Error:', err);
+  res.status(500).json({
+    success: false,
+    message: 'Internal server error',
+    error: process.env.NODE_ENV === 'development' ? err.message : 'An error occurred'
+  });
+});
+
+pool.query('SELECT NOW()', (err, result) => {
+  if (err) {
+    console.error('Database connection error:', err);
+  } else {
+    console.log('Database connected successfully');
+  }
+});
+
+app.listen(PORT, () => {
+  console.log(`PharmSecure Backend running on port ${PORT}`);
+});
+
+process.on('SIGTERM', () => {
+  console.log('SIGTERM received. Closing server...');
+  pool.end(() => {
+    console.log('Database pool closed');
+    process.exit(0);
+  });
+});
