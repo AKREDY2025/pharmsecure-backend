@@ -19,28 +19,42 @@ const authenticateToken = (req, res, next) => {
   next();
 };
 
-// Routes
-const authRoutes = require('./routes/auth');
-const pendingOrdersRoutes = require('./routes/pending-orders');
-const productsRoutes = require('./routes/products');
-const batchesRoutes = require('./routes/batches');
-const dashboardRoutes = require('./routes/dashboard');
-const reportsRoutes = require('./routes/reports');
-const inventoryRoutes = require('./routes/inventory');
-const refundsRoutes = require('./routes/refunds');
-const staffRoutes = require('./routes/staff');
-const printingRoutes = require('./routes/printing');
+// Routes with error handling
+const routes = {
+  auth: './routes/auth',
+  pendingOrders: './routes/pending-orders',
+  products: './routes/products',
+  batches: './routes/batches',
+  dashboard: './routes/dashboard',
+  reports: './routes/reports',
+  inventory: './routes/inventory',
+  refunds: './routes/refunds',
+  staff: './routes/staff',
+  printing: './routes/printing',
+};
 
-app.use('/api/auth', authRoutes);
-app.use('/api/pending-orders', pendingOrdersRoutes);
-app.use('/api/products', productsRoutes);
-app.use('/api/batches', batchesRoutes);
-app.use('/api/dashboard', dashboardRoutes);
-app.use('/api/reports', reportsRoutes);
-app.use('/api/inventory', inventoryRoutes);
-app.use('/api/refunds', refundsRoutes);
-app.use('/api/staff', staffRoutes);
-app.use('/api/printing', printingRoutes);
+const endpoints = {
+  auth: '/api/auth',
+  pendingOrders: '/api/pending-orders',
+  products: '/api/products',
+  batches: '/api/batches',
+  dashboard: '/api/dashboard',
+  reports: '/api/reports',
+  inventory: '/api/inventory',
+  refunds: '/api/refunds',
+  staff: '/api/staff',
+  printing: '/api/printing',
+};
+
+for (const [key, path] of Object.entries(routes)) {
+  try {
+    const router = require(path);
+    app.use(endpoints[key], router);
+    console.log(`✓ Loaded route: ${endpoints[key]}`);
+  } catch (err) {
+    console.error(`✗ Failed to load ${path}:`, err.message);
+  }
+}
 
 // Migration endpoint (admin only)
 app.get('/api/migrate', authenticateToken, async (req, res) => {
