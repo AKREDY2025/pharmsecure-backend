@@ -1,11 +1,8 @@
 const { Pool } = require('pg');
 
+// Use DATABASE_URL for production (Render), or individual env vars for local dev
 const pool = new Pool({
-  user: process.env.DB_USER || 'pharmsecure_user',
-  host: process.env.DB_HOST || 'localhost',
-  database: process.env.DB_NAME || 'pharmsecure',
-  password: process.env.DB_PASSWORD || 'pharmsecure_password_123',
-  port: process.env.DB_PORT || 5432,
+  connectionString: process.env.DATABASE_URL || `postgresql://${process.env.DB_USER || 'pharmsecure_user'}:${process.env.DB_PASSWORD || 'pharmsecure_password_123'}@${process.env.DB_HOST || 'localhost'}:${process.env.DB_PORT || 5432}/${process.env.DB_NAME || 'pharmsecure'}`,
 });
 
 pool.on('error', (err) => {
