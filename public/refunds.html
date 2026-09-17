@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script>
+    (function() {
+        const token = localStorage.getItem("token");
+        if (!token) {
+            window.location.href = "/login.html";
+        }
+    })();
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PharmSecure Refunds & Returns</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f5f5; color: #333; }
+        .container { display: flex; min-height: 100vh; }
+        .sidebar { width: 250px; background: #2c3e50; color: white; padding: 20px; box-shadow: 2px 0 5px rgba(0,0,0,0.1); }
+        .sidebar h2 { margin-bottom: 20px; font-size: 18px; }
+        .sidebar button { width: 100%; padding: 12px 15px; margin: 8px 0; background: #34495e; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; }
+        .sidebar button:hover { background: #455a64; }
+        .sidebar .logout { background: #e74c3c; margin-top: 30px; }
+        .main { flex: 1; padding: 30px; overflow-y: auto; }
+        .header { margin-bottom: 30px; }
+        .header h1 { font-size: 28px; color: #2c3e50; margin-bottom: 10px; }
+        
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 30px; }
+        .card { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .card h3 { font-size: 12px; color: #7f8c8d; text-transform: uppercase; margin-bottom: 8px; }
+        .card .value { font-size: 24px; font-weight: bold; color: #2c3e50; }
+        .card.alert { border-left: 4px solid #e74c3c; }
+        .card.success { border-left: 4px solid #27ae60; }
+        
+        .tabs { display: flex; gap: 0; margin-bottom: 20px; border-bottom: 2px solid #ecf0f1; }
+        .tab { padding: 12px 20px; cursor: pointer; background: none; border: none; font-size: 14px; font-weight: bold; color: #7f8c8d; }
+        .tab.active { color: #3498db; border-bottom: 3px solid #3498db; margin-bottom: -2px; }
+        
+        .section { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; display: none; }
+        .section.active { display: block; }
+        .section-title { font-size: 16px; font-weight: bold; margin-bottom: 15px; color: #2c3e50; }
+        
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-size: 12px; font-weight: bold; margin-bottom: 5px; }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; font-family: inherit; }
+        .form-group textarea { min-height: 80px; resize: vertical; }
+        
+        .btn { padding: 8px 15px; background: #3498db; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; margin-right: 5px; }
+        .btn:hover { background: #2980b9; }
+        .btn-success { background: #27ae60; }
+        .btn-success:hover { background: #229954; }
+        .btn-danger { background: #e74c3c; }
+        .btn-danger:hover { background: #c0392b; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th { background: #34495e; color: white; padding: 12px; text-align: left; font-size: 12px; }
+        td { padding: 10px 12px; border-bottom: 1px solid #ecf0f1; }
+        tr:hover { background: #f9f9f9; }
+        
+        .badge { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; }
+        .badge-pending { background: #f39c12; color: white; }
+        .badge-approved { background: #27ae60; color: white; }
+        .badge-completed { background: #3498db; color: white; }
+        .badge-rejected { background: #e74c3c; color: white; }
+        
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; }
+        .modal.active { display: flex; align-items: center; justify-content: center; }
+        .modal-content { background: white; padding: 30px; border-radius: 8px; max-width: 500px; width: 90%; }
+        .modal-header { font-size: 18px; font-weight: bold; margin-bottom: 15px; }
+        .modal-close { float: right; cursor: pointer; font-size: 20px; }
+        
+        .loading { text-align: center; padding: 40px; color: #7f8c8d; }
+        .empty { text-align: center; color: #7f8c8d; padding: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <h2>PharmSecure</h2>
+            <div style="background: #34495e; padding: 12px; border-radius: 4px; margin-bottom: 20px; font-size: 12px;">
+                <div id="currentUser" style="font-weight: bold;">Loading...</div>
+                <div style="color: #95a5a6; margin-top: 4px;">Refunds</div>
+            </div>
+            <button onclick="window.location.href='dashboard.html'">📊 Dashboard</button>
+            <button onclick="window.location.href='staff.html'" style="background: #16a085; margin-bottom: 5px;">👥 Staff</button>
+            <button onclick="window.location.href='inventory.html'">📦 Inventory</button>
+            <button class="logout" onclick="logout()">Logout</button>
+        </div>
+
+        <div class="main">
+            <div class="header">
+                <h1>💰 Refunds & Returns</h1>
+                <p style="color: #7f8c8d; font-size: 14px;">Manage customer refunds and return requests</p>
+            </div>
+
+            <!-- Stats -->
+            <div class="grid">
+                <div class="card alert">
+                    <h3>Pending</h3>
+                    <div class="value" id="pendingCount">0</div>
+                </div>
+                <div class="card success">
+                    <h3>Approved</h3>
+                    <div class="value" id="approvedCount">0</div>
+                </div>
+                <div class="card">
+                    <h3>Completed</h3>
+                    <div class="value" id="completedCount">0</div>
+                </div>
+                <div class="card">
+                    <h3>Total Refunded</h3>
+                    <div class="value" id="totalRefunded">GHS 0.00</div>
+                </div>
+            </div>
+
+            <!-- Tabs -->
+            <div class="tabs">
+                <button class="tab active" onclick="switchTab('pending')">⏳ Pending Refunds</button>
+                <button class="tab" onclick="switchTab('history')">📋 Refund History</button>
+                <button class="tab" onclick="switchTab('request')">➕ New Refund Request</button>
+            </div>
+
+            <!-- Pending Refunds Tab -->
+            <div id="pending" class="section active">
+                <div class="section-title">⏳ Pending Refund Requests</div>
+                <div id="pendingTableContainer">
+                    <div class="loading">Loading pending refunds...</div>
+                </div>
+            </div>
+
+            <!-- History Tab -->
+            <div id="history" class="section">
+                <div class="section-title">📋 Refund History</div>
+                <div id="historyTableContainer">
+                    <div class="loading">Loading refund history...</div>
+                </div>
+            </div>
+
+            <!-- Request Tab -->
+            <div id="request" class="section">
+                <div class="section-title">➕ Request New Refund</div>
+                <form onsubmit="submitRefundRequest(event)">
+                    <div class="form-group">
+                        <label>Order ID</label>
+                        <input type="number" id="orderIdInput" required placeholder="Enter order number">
+                    </div>
+                    <div class="form-group">
+                        <label>Refund Reason</label>
+                        <select id="refundReasonSelect" required>
+                            <option value="">-- Select reason --</option>
+                            <option value="DAMAGED">Damaged Product</option>
+                            <option value="EXPIRED">Expired Product</option>
+                            <option value="WRONG_ITEM">Wrong Item Received</option>
+                            <option value="CUSTOMER_REQUEST">Customer Request</option>
+                            <option value="OTHER">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Notes</label>
+                        <textarea id="notesInput" placeholder="Additional details..."></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-success">✅ Submit Refund Request</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Refund Details Modal -->
+    <div id="refundModal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close" onclick="closeModal()">&times;</span>
+            <div class="modal-header">Refund Details</div>
+            <div id="modalBody"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'https://pharmsecure-api.onrender.com/api';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                window.location.href = '/login.html';
+                return;
+            }
+            const user = JSON.parse(localStorage.getItem('user')) || {};
+            document.getElementById('currentUser').textContent = user.username || 'User';
+            
+            loadRefundData();
+        });
+
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = '/login.html';
+        }
+
+        function switchTab(tabName) {
+            // Hide all sections
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            
+            // Show selected section
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        async function loadRefundData() {
+            const token = localStorage.getItem('token');
+            if (!token) return;
+
+            try {
+                const [stats, pending, history] = await Promise.all([
+                    fetch(API_URL + '/refunds/stats/summary', { headers: { 'Authorization': 'Bearer ' + token } }).then(r => r.json()),
+                    fetch(API_URL + '/refunds/pending', { headers: { 'Authorization': 'Bearer ' + token } }).then(r => r.json()),
+                    fetch(API_URL + '/refunds/history', { headers: { 'Authorization': 'Bearer ' + token } }).then(r => r.json())
+                ]);
+
+                if (stats.success) {
+                    document.getElementById('pendingCount').textContent = stats.data.pending_count;
+                    document.getElementById('approvedCount').textContent = stats.data.approved_count;
+                    document.getElementById('completedCount').textContent = stats.data.rejected_count;
+                    document.getElementById('totalRefunded').textContent = 'GHS ' + parseFloat(stats.data.total_refunded).toFixed(2);
+                }
+
+                if (pending.success) {
+                    displayPendingRefunds(pending.data.pending_refunds);
+                }
+
+                if (history.success) {
+                    displayRefundHistory(history.data.refunds);
+                }
+            } catch (error) {
+                console.error('Error loading refunds:', error);
+            }
+        }
+
+        function displayPendingRefunds(refunds) {
+            const container = document.getElementById('pendingTableContainer');
+            if (refunds.length === 0) {
+                container.innerHTML = '<div class="empty">✅ No pending refunds!</div>';
+                return;
+            }
+
+            let html = `<table>
+                <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Customer</th>
+                        <th>Amount</th>
+                        <th>Reason</th>
+                        <th>Requested</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>`;
+
+            refunds.forEach(r => {
+                const date = new Date(r.created_at).toLocaleDateString();
+                html += `
+                    <tr>
+                        <td>#${r.order_id}</td>
+                        <td>${r.customer_name}</td>
+                        <td>GHS ${parseFloat(r.refund_amount).toFixed(2)}</td>
+                        <td>${r.refund_reason}</td>
+                        <td>${date}</td>
+                        <td>
+                            <button class="btn btn-success" onclick="approveRefund(${r.id})">✅ Approve</button>
+                            <button class="btn btn-danger" onclick="rejectRefund(${r.id})">❌ Reject</button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            html += '</tbody></table>';
+            container.innerHTML = html;
+        }
+
+        function displayRefundHistory(refunds) {
+            const container = document.getElementById('historyTableContainer');
+            if (refunds.length === 0) {
+                container.innerHTML = '<div class="empty">No refund history</div>';
+                return;
+            }
+
+            let html = `<table>
+                <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Customer</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                        <th>Processed By</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>`;
+
+            refunds.forEach(r => {
+                const date = new Date(r.created_at).toLocaleDateString();
+                let badgeClass = 'badge-pending';
+                if (r.refund_status === 'APPROVED') badgeClass = 'badge-approved';
+                else if (r.refund_status === 'COMPLETED') badgeClass = 'badge-completed';
+                else if (r.refund_status === 'REJECTED') badgeClass = 'badge-rejected';
+
+                html += `
+                    <tr>
+                        <td>#${r.order_id}</td>
+                        <td>${r.customer_name}</td>
+                        <td>GHS ${parseFloat(r.refund_amount).toFixed(2)}</td>
+                        <td><span class="badge ${badgeClass}">${r.refund_status}</span></td>
+                        <td>${r.processed_by || 'N/A'}</td>
+                        <td>${date}</td>
+                    </tr>
+                `;
+            });
+
+            html += '</tbody></table>';
+            container.innerHTML = html;
+        }
+
+        async function approveRefund(refundId) {
+            const token = localStorage.getItem('token');
+            const notes = prompt('Add approval notes (optional):');
+
+            try {
+                const res = await fetch(API_URL + `/refunds/${refundId}/approve`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': 'Bearer ' + token,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ notes: notes || '' })
+                }).then(r => r.json());
+
+                if (res.success) {
+                    alert('✅ Refund approved!');
+                    loadRefundData();
+                } else {
+                    alert('Error: ' + res.message);
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+
+        async function rejectRefund(refundId) {
+            const token = localStorage.getItem('token');
+            const reason = prompt('Enter rejection reason:');
+            if (!reason) return;
+
+            try {
+                const res = await fetch(API_URL + `/refunds/${refundId}/reject`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': 'Bearer ' + token,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ reason })
+                }).then(r => r.json());
+
+                if (res.success) {
+                    alert('❌ Refund rejected');
+                    loadRefundData();
+                } else {
+                    alert('Error: ' + res.message);
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+
+        async function submitRefundRequest(e) {
+            e.preventDefault();
+            const token = localStorage.getItem('token');
+            const orderId = document.getElementById('orderIdInput').value;
+            const reason = document.getElementById('refundReasonSelect').value;
+            const notes = document.getElementById('notesInput').value;
+
+            try {
+                const res = await fetch(API_URL + '/refunds/request', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer ' + token,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        order_id: parseInt(orderId),
+                        refund_reason: reason,
+                        notes
+                    })
+                }).then(r => r.json());
+
+                if (res.success) {
+                    alert('✅ Refund request submitted!');
+                    e.target.reset();
+                    loadRefundData();
+                    switchTab('pending');
+                } else {
+                    alert('Error: ' + res.message);
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('refundModal').classList.remove('active');
+        }
+    </script>
+</body>
+</html>

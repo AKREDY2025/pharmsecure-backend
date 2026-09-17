@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PharmSecure - Login</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .login-container {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            max-width: 400px;
+            width: 90%;
+        }
+        .login-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .login-header h1 {
+            font-size: 28px;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+        .login-header p {
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #2c3e50;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #bdc3c7;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        .login-button {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .login-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+        .login-button:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+        }
+        .alert {
+            padding: 12px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            font-size: 13px;
+        }
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .demo-users {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #ecf0f1;
+            font-size: 12px;
+            color: #7f8c8d;
+        }
+        .demo-users h4 {
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+        .demo-user {
+            background: #f9f9f9;
+            padding: 8px;
+            margin-bottom: 8px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .demo-user:hover {
+            background: #ecf0f1;
+        }
+        .demo-user strong {
+            color: #2c3e50;
+        }
+        .demo-user .role {
+            font-size: 11px;
+            color: #95a5a6;
+            margin-top: 3px;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-header">
+            <h1>🏥 PharmSecure</h1>
+            <p>Pharmacy POS System - Phase 4</p>
+        </div>
+
+        <div id="alert" style="display: none;"></div>
+
+        <form id="loginForm" onsubmit="handleLogin(event)">
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" placeholder="Enter your username" required>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" placeholder="Enter your password" required>
+            </div>
+
+            <button type="submit" class="login-button" id="loginBtn">Sign In</button>
+        </form>
+
+        <div class="demo-users">
+            <h4>Demo Credentials:</h4>
+            <div class="demo-user" onclick="fillDemo('seller1', 'seller123')">
+                <strong>Seller</strong>
+                <div class="role">seller1 / seller123</div>
+            </div>
+            <div class="demo-user" onclick="fillDemo('cashier1', 'cashier123')">
+                <strong>Cashier</strong>
+                <div class="role">cashier1 / cashier123</div>
+            </div>
+            <div class="demo-user" onclick="fillDemo('admin', 'admin123')">
+                <strong>Admin</strong>
+                <div class="role">admin / admin123</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'https://pharmsecure-api.onrender.com/api';
+
+        function handleLogin(event) {
+            event.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const loginBtn = document.getElementById('loginBtn');
+
+            loginBtn.disabled = true;
+            loginBtn.innerHTML = 'Signing in...';
+
+            fetch(`${API_URL}/auth/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            })
+            .then(r => r.json())
+            .then(res => {
+                if (res.success) {
+                    localStorage.setItem('token', res.data.token);
+                    localStorage.setItem('user', JSON.stringify(res.data.user));
+
+                    const role = res.data.user.role;
+                    const intendedPage = sessionStorage.getItem('intendedPage');
+                    sessionStorage.removeItem('intendedPage');
+                    
+                    let redirectUrl = intendedPage;
+                    
+                    if (!redirectUrl) {
+                        if (role === 'cashier') {
+                            redirectUrl = '/cashier-interface.html';
+                        } else if (role === 'admin' || role === 'manager') {
+                            redirectUrl = '/dashboard.html';
+                        } else {
+                            redirectUrl = '/seller-interface.html';
+                        }
+                    }
+
+                    console.log("Login successful - Redirecting to:", redirectUrl);
+                    showAlert(`Welcome, ${res.data.user.username}!`, 'success');
+                    setTimeout(() => {
+                        window.location.href = redirectUrl;
+                    }, 1500);
+                } else {
+                    showAlert('Login failed: ' + res.message, 'error');
+                }
+            })
+            .catch(e => {
+                showAlert('Error: ' + e.message, 'error');
+            })
+            .finally(() => {
+                loginBtn.disabled = false;
+                loginBtn.innerHTML = 'Sign In';
+            });
+        }
+
+        function showAlert(msg, type) {
+            const alert = document.getElementById('alert');
+            alert.textContent = msg;
+            alert.className = `alert alert-${type}`;
+            alert.style.display = 'block';
+        }
+
+        function fillDemo(username, password) {
+            document.getElementById('username').value = username;
+            document.getElementById('password').value = password;
+            document.getElementById('loginForm').dispatchEvent(new Event('submit'));
+        }
+    </script>
+</body>
+</html>

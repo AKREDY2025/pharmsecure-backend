@@ -1,5 +1,6 @@
 require("dotenv").config();
 const express = require('express');
+const path = require('path');
 const cors = require("cors");
 const pool = require('./db');
 const jwt = require('jsonwebtoken');
@@ -10,6 +11,9 @@ const PORT = process.env.PORT || 3000;
 // Middleware
 app.use(express.json());
 app.use(cors());
+
+// Serve static files from public directory
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Middleware to verify token
 const authenticateToken = (req, res, next) => {
@@ -65,6 +69,11 @@ app.get('/api/migrate', authenticateToken, async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
+});
+
+// Serve index.html for root and any undefined routes (SPA fallback)
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // 404 handler

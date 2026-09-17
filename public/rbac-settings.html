@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script>
+    (function() {
+        const token = localStorage.getItem("token");
+        if (!token) {
+            window.location.href = "/login.html";
+        }
+    })();
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PharmSecure RBAC Settings</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f5f5; color: #333; }
+        .container { display: flex; min-height: 100vh; }
+        .sidebar { width: 250px; background: #2c3e50; color: white; padding: 20px; box-shadow: 2px 0 5px rgba(0,0,0,0.1); }
+        .sidebar h2 { margin-bottom: 20px; font-size: 18px; }
+        .sidebar button { width: 100%; padding: 12px 15px; margin: 8px 0; background: #34495e; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; }
+        .sidebar button:hover { background: #455a64; }
+        .sidebar .logout { background: #e74c3c; margin-top: 30px; }
+        .main { flex: 1; padding: 30px; overflow-y: auto; }
+        .header { margin-bottom: 30px; }
+        .header h1 { font-size: 28px; color: #2c3e50; margin-bottom: 10px; }
+        
+        .role-section { background: white; padding: 20px; margin-bottom: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .role-title { font-size: 18px; font-weight: bold; color: #2c3e50; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid #3498db; }
+        
+        .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
+        .feature-checkbox { display: flex; align-items: center; padding: 10px; background: #f9f9f9; border-radius: 4px; }
+        .feature-checkbox input { margin-right: 10px; width: 18px; height: 18px; cursor: pointer; }
+        .feature-checkbox label { cursor: pointer; font-weight: 500; }
+        
+        .btn { padding: 10px 20px; background: #27ae60; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; margin-top: 15px; }
+        .btn:hover { background: #229954; }
+        .btn-danger { background: #e74c3c; }
+        .btn-danger:hover { background: #c0392b; }
+        
+        .loading { text-align: center; padding: 40px; color: #7f8c8d; }
+        .success { color: #27ae60; font-weight: bold; }
+        .error { color: #e74c3c; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <h2>PharmSecure</h2>
+            <div style="background: #34495e; padding: 12px; border-radius: 4px; margin-bottom: 20px; font-size: 12px;">
+                <div id="currentUser" style="font-weight: bold;">Loading...</div>
+                <div style="color: #95a5a6; margin-top: 4px;">RBAC Settings</div>
+            </div>
+            <button onclick="window.location.href='staff.html'">👥 Staff Management</button>
+            <button onclick="window.location.href='dashboard.html'">📊 Dashboard</button>
+            <button class="logout" onclick="logout()">Logout</button>
+        </div>
+
+        <div class="main">
+            <div class="header">
+                <h1>⚙️ Role-Based Access Control Settings</h1>
+                <p style="color: #7f8c8d; font-size: 14px;">Configure which features each role can access</p>
+            </div>
+
+            <div id="rbacContainer">
+                <div class="loading">Loading RBAC settings...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'https://pharmsecure-api.onrender.com/api';
+        const FEATURES = ['dashboard', 'reports', 'inventory', 'refunds', 'pos', 'printing', 'staff'];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                window.location.href = '/login.html';
+                return;
+            }
+            const user = JSON.parse(localStorage.getItem('user')) || {};
+            document.getElementById('currentUser').textContent = user.username || 'User';
+            
+            loadRBACSettings();
+        });
+
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = '/login.html';
+        }
+
+        async function loadRBACSettings() {
+            const token = localStorage.getItem('token');
+            if (!token) return;
+
+            try {
+                const res = await fetch(API_URL + '/staff/roles', { 
+                    headers: { 'Authorization': 'Bearer ' + token } 
+                }).then(r => r.json());
+
+                if (res.success) {
+                    displayRBACSettings(res.data.roles);
+                }
+            } catch (error) {
+                console.error('Error loading RBAC settings:', error);
+                document.getElementById('rbacContainer').innerHTML = '<div class="error">Failed to load settings</div>';
+            }
+        }
+
+        function displayRBACSettings(roles) {
+            const container = document.getElementById('rbacContainer');
+            let html = '';
+
+            roles.forEach(role => {
+                const perms = role.permissions || {};
+                html += `
+                    <div class="role-section">
+                        <div class="role-title">${role.name}</div>
+                        <p style="color: #7f8c8d; margin-bottom: 15px;">${role.description || ''}</p>
+                        <div class="features-grid">
+                `;
+
+                FEATURES.forEach(feature => {
+                    const checked = perms[feature] === true ? 'checked' : '';
+                    html += `
+                        <div class="feature-checkbox">
+                            <input type="checkbox" id="${role.id}_${feature}" ${checked} 
+                                   onchange="updatePermission(${role.id}, '${feature}', this.checked)">
+                            <label for="${role.id}_${feature}">
+                                ${feature.charAt(0).toUpperCase() + feature.slice(1)}
+                            </label>
+                        </div>
+                    `;
+                });
+
+                html += `
+                        </div>
+                        <button class="btn" onclick="saveRole(${role.id})">💾 Save ${role.name}</button>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        function updatePermission(roleId, feature, checked) {
+            // Just update the checkbox - save when user clicks Save
+        }
+
+        async function saveRole(roleId) {
+            const token = localStorage.getItem('token');
+            const permissions = {};
+
+            FEATURES.forEach(feature => {
+                const checkbox = document.getElementById(`${roleId}_${feature}`);
+                if (checkbox) {
+                    permissions[feature] = checkbox.checked;
+                }
+            });
+
+            try {
+                const res = await fetch(API_URL + `/staff/roles/${roleId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': 'Bearer ' + token,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ permissions })
+                }).then(r => r.json());
+
+                if (res.success) {
+                    alert('✅ Role permissions updated!');
+                    loadRBACSettings();
+                } else {
+                    alert('Error: ' + res.message);
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+    </script>
+</body>
+</html>

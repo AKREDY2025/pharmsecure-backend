@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script>
+    (function() {
+        const token = localStorage.getItem("token");
+        if (!token) {
+            window.location.href = "/login.html";
+        }
+    })();
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PharmSecure Reports</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f5f5; color: #333; }
+        .container { display: flex; min-height: 100vh; }
+        .sidebar { width: 250px; background: #2c3e50; color: white; padding: 20px; box-shadow: 2px 0 5px rgba(0,0,0,0.1); }
+        .sidebar h2 { margin-bottom: 20px; font-size: 18px; }
+        .sidebar button { width: 100%; padding: 12px 15px; margin: 8px 0; background: #34495e; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; }
+        .sidebar button:hover { background: #455a64; }
+        .sidebar .logout { background: #e74c3c; margin-top: 30px; }
+        .main { flex: 1; padding: 30px; overflow-y: auto; }
+        .header { margin-bottom: 30px; }
+        .header h1 { font-size: 28px; color: #2c3e50; margin-bottom: 10px; }
+        
+        .filter-section { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        .filter-row { display: flex; gap: 15px; align-items: flex-end; flex-wrap: wrap; }
+        .form-group { flex: 1; min-width: 150px; }
+        .form-group label { display: block; font-size: 12px; font-weight: bold; margin-bottom: 5px; color: #2c3e50; }
+        .form-group input, .form-group select { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; }
+        .btn { padding: 8px 20px; background: #3498db; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        .btn:hover { background: #2980b9; }
+        .btn-export { background: #27ae60; }
+        .btn-export:hover { background: #229954; }
+        .btn-reset { background: #95a5a6; }
+        .btn-reset:hover { background: #7f8c8d; }
+        
+        .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .summary-card { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .summary-card h3 { font-size: 12px; color: #7f8c8d; text-transform: uppercase; margin-bottom: 8px; }
+        .summary-card .value { font-size: 22px; font-weight: bold; color: #2c3e50; }
+        
+        .table-container { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        .table-title { font-size: 16px; font-weight: bold; margin-bottom: 15px; color: #2c3e50; }
+        .search-box { width: 100%; padding: 8px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; }
+        table { width: 100%; border-collapse: collapse; }
+        th { background: #34495e; color: white; padding: 12px; text-align: left; font-size: 12px; cursor: pointer; }
+        th:hover { background: #2c3e50; }
+        td { padding: 10px 12px; border-bottom: 1px solid #ecf0f1; }
+        tr:hover { background: #f9f9f9; }
+        
+        .pagination { text-align: center; margin-top: 15px; }
+        .pagination button { padding: 6px 12px; margin: 0 5px; background: #3498db; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        .pagination button:disabled { background: #bdc3c7; cursor: not-allowed; }
+        
+        .loading { text-align: center; padding: 40px; color: #7f8c8d; }
+        .error { background: #f8d7da; color: #721c24; padding: 12px; border-radius: 4px; margin-bottom: 20px; }
+        .empty { text-align: center; color: #7f8c8d; padding: 20px; }
+        
+        @media (max-width: 768px) {
+            .filter-row { flex-direction: column; }
+            .form-group { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <h2>PharmSecure</h2>
+            <div style="background: #34495e; padding: 12px; border-radius: 4px; margin-bottom: 20px; font-size: 12px;">
+                <div id="currentUser" style="font-weight: bold;">Loading...</div>
+                <div style="color: #95a5a6; margin-top: 4px;">Reports</div>
+            </div>
+            <button onclick="window.location.href='dashboard.html'">📊 Dashboard</button>
+            <button onclick="window.location.href='staff.html'" style="background: #16a085; margin-bottom: 5px;">👥 Staff</button>
+            <button onclick="window.location.href='refunds.html'" style="background: #e74c3c; margin-bottom: 5px;">💰 Refunds</button>
+            <button onclick="window.location.href='inventory.html'" style="background: #27ae60; margin-bottom: 5px;">📦 Inventory</button>
+            <button onclick="window.location.href='seller-interface.html'">🛍 POS</button>
+            <button class="logout" onclick="logout()" style="margin-top: 30px;">Logout</button>
+        </div>
+
+        <div class="main">
+            <div class="header">
+                <h1>📑 Business Reports</h1>
+                <p style="color: #7f8c8d; font-size: 14px;">Advanced filtering & analytics for better insights</p>
+            </div>
+
+            <div id="errorContainer"></div>
+
+            <!-- Date Range Filter -->
+            <div class="filter-section">
+                <div class="filter-row">
+                    <div class="form-group">
+                        <label>Start Date</label>
+                        <input type="date" id="startDate" value="">
+                    </div>
+                    <div class="form-group">
+                        <label>End Date</label>
+                        <input type="date" id="endDate" value="">
+                    </div>
+                    <button class="btn" onclick="generateReport()">🔍 Generate Report</button>
+                    <button class="btn btn-export" onclick="exportCSV()">📥 Export CSV</button>
+                    <button class="btn btn-reset" onclick="resetFilters()">🔄 Reset</button>
+                </div>
+            </div>
+
+            <!-- Summary Cards -->
+            <div id="summaryContainer" class="summary-grid"></div>
+
+            <!-- Sales Report with Advanced Filtering -->
+            <div class="table-container">
+                <div class="table-title">📋 Sales Report</div>
+                <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                    <input type="text" id="salesSearch" class="search-box" placeholder="Search by customer, seller, or order number..." style="flex: 1; margin-bottom: 0;">
+                    <select id="salesPaymentFilter" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                        <option value="">All Payment Methods</option>
+                        <option value="CASH">Cash</option>
+                        <option value="CARD">Card</option>
+                        <option value="MOMO">Mobile Money</option>
+                    </select>
+                </div>
+                <div id="salesTableContainer">
+                    <div class="empty">Select date range and click "Generate Report"</div>
+                </div>
+                <div class="pagination" id="salesPagination"></div>
+            </div>
+
+            <!-- Product Profitability with Search -->
+            <div class="table-container">
+                <div class="table-title">💰 Product Profitability</div>
+                <input type="text" id="productSearch" class="search-box" placeholder="Search products by name or SKU...">
+                <div id="profitabilityTableContainer">
+                    <div class="empty">Select date range and click "Generate Report"</div>
+                </div>
+            </div>
+
+            <!-- Seller Performance with Filter -->
+            <div class="table-container">
+                <div class="table-title">👥 Seller Performance</div>
+                <select id="sellerFilter" style="width: 200px; padding: 8px; border: 1px solid #ddd; border-radius: 4px; margin-bottom: 15px;">
+                    <option value="">All Sellers</option>
+                </select>
+                <div id="sellerTableContainer">
+                    <div class="empty">Select date range and click "Generate Report"</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'https://pharmsecure-api.onrender.com/api';
+        let currentReportData = {};
+        let filteredSalesData = [];
+        let filteredProductData = [];
+        let currentSalesPage = 1;
+        const itemsPerPage = 10;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                window.location.href = '/login.html';
+                return;
+            }
+            const user = JSON.parse(localStorage.getItem('user')) || {};
+            document.getElementById('currentUser').textContent = user.username || 'User';
+            
+            const today = new Date();
+            const thirtyDaysAgo = new Date(today.getTime() - (30 * 24 * 60 * 60 * 1000));
+            
+            document.getElementById('startDate').value = thirtyDaysAgo.toISOString().split('T')[0];
+            document.getElementById('endDate').value = today.toISOString().split('T')[0];
+
+            document.getElementById('salesSearch').addEventListener('input', applyFilters);
+            document.getElementById('salesPaymentFilter').addEventListener('change', applyFilters);
+            document.getElementById('productSearch').addEventListener('input', filterProducts);
+            document.getElementById('sellerFilter').addEventListener('change', filterSellers);
+        });
+
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = '/login.html';
+        }
+
+        function resetFilters() {
+            document.getElementById('salesSearch').value = '';
+            document.getElementById('salesPaymentFilter').value = '';
+            document.getElementById('productSearch').value = '';
+            document.getElementById('sellerFilter').value = '';
+            currentSalesPage = 1;
+        }
+
+        async function generateReport() {
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+            const token = localStorage.getItem('token');
+
+            if (!startDate || !endDate) {
+                showError('Please select both start and end dates');
+                return;
+            }
+
+            try {
+                document.getElementById('summaryContainer').innerHTML = '<div class="loading">Loading report...</div>';
+                document.getElementById('salesTableContainer').innerHTML = '<div class="loading">Loading...</div>';
+                document.getElementById('profitabilityTableContainer').innerHTML = '<div class="loading">Loading...</div>';
+                document.getElementById('sellerTableContainer').innerHTML = '<div class="loading">Loading...</div>';
+
+                const [summary, sales, profitability, sellers] = await Promise.all([
+                    fetch(API_URL + `/reports/summary?start_date=${startDate}&end_date=${endDate}`, { headers: { 'Authorization': 'Bearer ' + token } }).then(r => r.json()),
+                    fetch(API_URL + `/reports/sales?start_date=${startDate}&end_date=${endDate}`, { headers: { 'Authorization': 'Bearer ' + token } }).then(r => r.json()),
+                    fetch(API_URL + `/reports/product-profitability?start_date=${startDate}&end_date=${endDate}`, { headers: { 'Authorization': 'Bearer ' + token } }).then(r => r.json()),
+                    fetch(API_URL + `/reports/sellers?start_date=${startDate}&end_date=${endDate}`, { headers: { 'Authorization': 'Bearer ' + token } }).then(r => r.json())
+                ]);
+
+                currentReportData = { summary, sales, profitability, sellers, startDate, endDate };
+
+                // Summary cards
+                if (summary.success) {
+                    const s = summary.data.summary;
+                    document.getElementById('summaryContainer').innerHTML = `
+                        <div class="summary-card">
+                            <h3>Total Revenue</h3>
+                            <div class="value">GHS ${parseFloat(s.total_revenue || 0).toFixed(2)}</div>
+                        </div>
+                        <div class="summary-card">
+                            <h3>Transactions</h3>
+                            <div class="value">${s.transaction_count || 0}</div>
+                        </div>
+                        <div class="summary-card">
+                            <h3>Avg Order</h3>
+                            <div class="value">GHS ${parseFloat(s.avg_order_value || 0).toFixed(2)}</div>
+                        </div>
+                        <div class="summary-card">
+                            <h3>Total Tax</h3>
+                            <div class="value">GHS ${parseFloat(s.total_tax || 0).toFixed(2)}</div>
+                        </div>
+                    `;
+                }
+
+                // Sales data
+                if (sales.success) {
+                    filteredSalesData = sales.data.sales;
+                    currentSalesPage = 1;
+                    displaySalesTable();
+                }
+
+                // Products data
+                if (profitability.success) {
+                    filteredProductData = profitability.data.products;
+                    displayProfitabilityTable(filteredProductData);
+                }
+
+                // Sellers & populate filter
+                if (sellers.success) {
+                    const sellerFilter = document.getElementById('sellerFilter');
+                    sellerFilter.innerHTML = '<option value="">All Sellers</option>';
+                    sellers.data.sellers.forEach(s => {
+                        const opt = document.createElement('option');
+                        opt.value = s.seller_name;
+                        opt.textContent = s.seller_name;
+                        sellerFilter.appendChild(opt);
+                    });
+                    displaySellerTable(sellers.data.sellers);
+                }
+
+                document.getElementById('errorContainer').innerHTML = '';
+            } catch (error) {
+                console.error('Report error:', error);
+                showError('Error generating report: ' + error.message);
+            }
+        }
+
+        function applyFilters() {
+            currentSalesPage = 1;
+            displaySalesTable();
+        }
+
+        function displaySalesTable() {
+            const searchTerm = document.getElementById('salesSearch').value.toLowerCase();
+            const paymentFilter = document.getElementById('salesPaymentFilter').value;
+
+            let filtered = filteredSalesData;
+
+            if (searchTerm) {
+                filtered = filtered.filter(s => 
+                    s.customer_name.toLowerCase().includes(searchTerm) ||
+                    (s.seller_name && s.seller_name.toLowerCase().includes(searchTerm)) ||
+                    s.id.toString().includes(searchTerm)
+                );
+            }
+
+            if (paymentFilter) {
+                filtered = filtered.filter(s => s.payment_method === paymentFilter);
+            }
+
+            const start = (currentSalesPage - 1) * itemsPerPage;
+            const end = start + itemsPerPage;
+            const pageData = filtered.slice(start, end);
+
+            const container = document.getElementById('salesTableContainer');
+            if (pageData.length === 0) {
+                container.innerHTML = '<div class="empty">No sales found matching filters</div>';
+                document.getElementById('salesPagination').innerHTML = '';
+                return;
+            }
+
+            let html = `<table>
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Customer</th>
+                        <th>Seller</th>
+                        <th>Subtotal</th>
+                        <th>Tax</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody>`;
+
+            pageData.forEach(s => {
+                const date = new Date(s.created_at).toLocaleString();
+                html += `
+                    <tr>
+                        <td>${date}</td>
+                        <td>${s.customer_name}</td>
+                        <td>${s.seller_name || 'N/A'}</td>
+                        <td>GHS ${parseFloat(s.subtotal).toFixed(2)}</td>
+                        <td>GHS ${parseFloat(s.tax).toFixed(2)}</td>
+                        <td><strong>GHS ${parseFloat(s.total_amount).toFixed(2)}</strong></td>
+                    </tr>
+                `;
+            });
+
+            html += '</tbody></table>';
+            container.innerHTML = html;
+
+            // Pagination
+            const totalPages = Math.ceil(filtered.length / itemsPerPage);
+            let pagination = '';
+            for (let i = 1; i <= totalPages; i++) {
+                pagination += `<button onclick="currentSalesPage = ${i}; displaySalesTable();" ${i === currentSalesPage ? 'disabled' : ''}>${i}</button>`;
+            }
+            document.getElementById('salesPagination').innerHTML = pagination || '';
+        }
+
+        function filterProducts() {
+            const search = document.getElementById('productSearch').value.toLowerCase();
+            const filtered = filteredProductData.filter(p => 
+                p.name.toLowerCase().includes(search) || 
+                p.sku.toLowerCase().includes(search)
+            );
+            displayProfitabilityTable(filtered);
+        }
+
+        function displayProfitabilityTable(products) {
+            const container = document.getElementById('profitabilityTableContainer');
+            if (products.length === 0) {
+                container.innerHTML = '<div class="empty">No products found</div>';
+                return;
+            }
+
+            let html = `<table>
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th>SKU</th>
+                        <th>Unit Price</th>
+                        <th>Qty Sold</th>
+                        <th>Total Revenue</th>
+                    </tr>
+                </thead>
+                <tbody>`;
+
+            products.forEach(p => {
+                html += `
+                    <tr>
+                        <td>${p.name}</td>
+                        <td>${p.sku}</td>
+                        <td>GHS ${parseFloat(p.unit_price).toFixed(2)}</td>
+                        <td>${p.total_qty_sold}</td>
+                        <td><strong>GHS ${parseFloat(p.total_revenue).toFixed(2)}</strong></td>
+                    </tr>
+                `;
+            });
+
+            html += '</tbody></table>';
+            container.innerHTML = html;
+        }
+
+        function filterSellers() {
+            const selectedSeller = document.getElementById('sellerFilter').value;
+            let filtered = currentReportData.sellers.data.sellers || [];
+            
+            if (selectedSeller) {
+                filtered = filtered.filter(s => s.seller_name === selectedSeller);
+            }
+            
+            displaySellerTable(filtered);
+        }
+
+        function displaySellerTable(sellers) {
+            const container = document.getElementById('sellerTableContainer');
+            if (sellers.length === 0) {
+                container.innerHTML = '<div class="empty">No seller data found</div>';
+                return;
+            }
+
+            let html = `<table>
+                <thead>
+                    <tr>
+                        <th>Seller</th>
+                        <th>Transactions</th>
+                        <th>Total Revenue</th>
+                        <th>Avg Order</th>
+                    </tr>
+                </thead>
+                <tbody>`;
+
+            sellers.forEach(s => {
+                html += `
+                    <tr>
+                        <td>${s.seller_name}</td>
+                        <td>${s.transaction_count}</td>
+                        <td>GHS ${parseFloat(s.total_revenue).toFixed(2)}</td>
+                        <td>GHS ${parseFloat(s.avg_order_value).toFixed(2)}</td>
+                    </tr>
+                `;
+            });
+
+            html += '</tbody></table>';
+            container.innerHTML = html;
+        }
+
+        function exportCSV() {
+            if (!currentReportData.sales || !currentReportData.sales.data) {
+                showError('Please generate a report first');
+                return;
+            }
+
+            const sales = currentReportData.sales.data.sales || [];
+            const products = currentReportData.profitability.data.products || [];
+            const sellers = currentReportData.sellers.data.sellers || [];
+
+            let csv = 'PHARMSECURE BUSINESS REPORT\n';
+            csv += `Generated: ${new Date().toLocaleString()}\n`;
+            csv += `Date Range: ${currentReportData.startDate} to ${currentReportData.endDate}\n\n`;
+
+            const summary = currentReportData.summary.data.summary;
+            csv += 'SUMMARY\n';
+            csv += `Total Revenue,${summary.total_revenue}\n`;
+            csv += `Transactions,${summary.transaction_count}\n`;
+            csv += `Average Order,${summary.avg_order_value}\n\n`;
+
+            csv += 'SALES REPORT\n';
+            csv += 'Date,Customer,Seller,Subtotal,Tax,Total\n';
+            sales.forEach(s => {
+                csv += `"${new Date(s.created_at).toLocaleString()}","${s.customer_name}","${s.seller_name || 'N/A'}",${s.subtotal},${s.tax},${s.total_amount}\n`;
+            });
+            csv += '\n';
+
+            csv += 'PRODUCT PROFITABILITY\n';
+            csv += 'Product,SKU,Unit Price,Qty Sold,Total Revenue\n';
+            products.forEach(p => {
+                csv += `"${p.name}","${p.sku}",${p.unit_price},${p.total_qty_sold},${p.total_revenue}\n`;
+            });
+            csv += '\n';
+
+            csv += 'SELLER PERFORMANCE\n';
+            csv += 'Seller,Transactions,Total Revenue,Avg Order\n';
+            sellers.forEach(s => {
+                csv += `"${s.seller_name}",${s.transaction_count},${s.total_revenue},${s.avg_order_value}\n`;
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `PharmSecure-Report-${new Date().toISOString().split('T')[0]}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        }
+
+        function showError(msg) {
+            document.getElementById('errorContainer').innerHTML = '<div class="error">' + msg + '</div>';
+        }
+    </script>
+</body>
+</html>

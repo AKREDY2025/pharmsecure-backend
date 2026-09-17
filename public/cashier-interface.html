@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script>
+    (function() {
+        const token = localStorage.getItem("token");
+        if (!token) {
+            window.location.href = "/login.html";
+        }
+    })();
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PharmSecure - Cashier Interface</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+        }
+
+        .container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 250px;
+            background: #c0392b;
+            color: white;
+            padding: 20px;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+        }
+
+        .sidebar h2 {
+            margin-bottom: 20px;
+            font-size: 20px;
+        }
+
+        .sidebar button {
+            width: 100%;
+            padding: 12px 15px;
+            margin: 8px 0;
+            background: #a93226;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: 0.3s;
+        }
+
+        .sidebar button:hover {
+            background: #922b21;
+        }
+
+        .sidebar button.active {
+            background: #e74c3c;
+            font-weight: bold;
+        }
+
+        .sidebar .user-info {
+            background: #a93226;
+            padding: 12px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            font-size: 12px;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            background: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            font-size: 24px;
+            color: #c0392b;
+        }
+
+        .queue-badge {
+            background: #e74c3c;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 12px;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .queue-section {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 20px;
+        }
+
+        .queue-list {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .queue-header {
+            background: #2c3e50;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px 8px 0 0;
+            font-weight: bold;
+        }
+
+        .queue-items {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .queue-item {
+            padding: 15px 20px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+            background: white;
+        }
+
+        .queue-item:hover {
+            background: #f9f9f9;
+        }
+
+        .queue-item.selected {
+            background: #ecf0f1;
+            border-left: 4px solid #c0392b;
+            padding-left: 16px;
+        }
+
+        .queue-item h3 {
+            font-size: 14px;
+            margin-bottom: 5px;
+            color: #2c3e50;
+        }
+
+        .queue-item p {
+            font-size: 12px;
+            color: #7f8c8d;
+            margin: 3px 0;
+        }
+
+        .order-detail {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 20px;
+            position: sticky;
+            top: 20px;
+        }
+
+        .order-detail h2 {
+            font-size: 18px;
+            margin-bottom: 15px;
+            color: #2c3e50;
+            border-bottom: 2px solid #c0392b;
+            padding-bottom: 10px;
+        }
+
+        .order-detail-info {
+            margin-bottom: 15px;
+            font-size: 13px;
+        }
+
+        .order-detail-info p {
+            margin: 5px 0;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .order-items-list {
+            background: #f9f9f9;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            max-height: 150px;
+            overflow-y: auto;
+            font-size: 12px;
+        }
+
+        .order-item-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .payment-section {
+            background: #f0f0f0;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+        }
+
+        .payment-section h3 {
+            font-size: 13px;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .form-group {
+            margin-bottom: 10px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 12px;
+            margin-bottom: 4px;
+            font-weight: bold;
+        }
+
+        .form-group select,
+        .form-group input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        .totals-box {
+            background: white;
+            padding: 12px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            border: 2px solid #c0392b;
+        }
+
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 5px 0;
+            font-size: 13px;
+        }
+
+        .total-row.large {
+            font-size: 16px;
+            font-weight: bold;
+            border-top: 1px solid #ddd;
+            padding-top: 8px;
+            color: #c0392b;
+        }
+
+        .change-display {
+            background: #d5f4e6;
+            padding: 8px;
+            border-radius: 4px;
+            text-align: center;
+            font-weight: bold;
+            color: #27ae60;
+            margin-top: 8px;
+        }
+
+        .order-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .order-actions button {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+        .btn-process {
+            background: #27ae60;
+            color: white;
+        }
+
+        .btn-process:hover:not(:disabled) {
+            background: #229954;
+        }
+
+        .btn-process:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #7f8c8d;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+        }
+
+        .receipt {
+            background: #fff;
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            margin-bottom: 15px;
+        }
+
+        .alert {
+            padding: 12px 15px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            font-size: 13px;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <div class="user-info">
+                <strong id="currentUser">Loading...</strong><br>
+                <small>Cashier</small>
+            </div>
+
+            <h2>Cashier Dashboard</h2>
+            <button class="tab-button active" data-tab="payment-queue">Payment Queue</button>
+            <button id="logoutBtn" style="background: #922b21; margin-top: 30px;">Logout</button>
+        </div>
+
+        <div class="main-content">
+            <div class="header">
+                <h1>PharmSecure Cashier Interface</h1>
+                <span id="queueCount" class="queue-badge">0 waiting</span>
+                <span id="timeDisplay" style="margin-left: 20px; color: #7f8c8d;"></span>
+            </div>
+
+            <div id="payment-queue" class="tab-content active">
+                <div id="queueAlert" style="display: none;"></div>
+
+                <div class="queue-section">
+                    <div>
+                        <div class="queue-list">
+                            <div class="queue-header">Orders Ready for Payment</div>
+                            <div class="queue-items" id="queueList">
+                                <div class="empty-state">
+                                    <p>No orders in queue</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="order-detail" id="orderDetail">
+                            <h2>Select Order</h2>
+                            <p style="color: #7f8c8d; font-size: 13px;">Click an order to process</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="successModal" class="modal">
+        <div class="modal-content">
+            <div style="font-size: 18px; font-weight: bold; margin-bottom: 20px;">✓ Sale Completed</div>
+            <div id="receiptContent" class="receipt"></div>
+            <button style="padding: 10px 20px; background: #c0392b; color: white; border: none; border-radius: 4px; cursor: pointer;" onclick="printReceipt()">Print Receipt</button>
+            <button style="padding: 10px 20px; background: #95a5a6; color: white; border: none; border-radius: 4px; cursor: pointer; margin-left: 10px;" onclick="closeSuccessModal()">Next Order</button>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'https://pharmsecure-api.onrender.com/api';
+        let selectedOrder = null;
+        let queueOrders = [];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            const user = JSON.parse(localStorage.getItem('user')) || {};
+            document.getElementById('currentUser').textContent = user.username || 'User';
+
+            loadQueue();
+            setupEventListeners();
+            updateTime();
+            setInterval(updateTime, 1000);
+            setInterval(loadQueue, 5000);
+        });
+
+        function loadQueue() {
+            const token = localStorage.getItem('token');
+            fetch(`${API_URL}/pending-orders/queue/cashier`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            })
+            .then(r => r.json())
+            .then(res => {
+                if (res.success) {
+                    queueOrders = res.data.queue || [];
+                    displayQueue(queueOrders);
+                    document.getElementById('queueCount').textContent = `${queueOrders.length} waiting`;
+                }
+            })
+            .catch(e => console.error('Error loading queue:', e));
+        }
+
+        function displayQueue(orders) {
+            const list = document.getElementById('queueList');
+            if (orders.length === 0) {
+                list.innerHTML = '<div class="empty-state"><p>No orders in queue</p></div>';
+                return;
+            }
+
+            list.innerHTML = orders.map((o, idx) => `
+                <div class="queue-item ${selectedOrder?.id === o.id ? 'selected' : ''}" onclick="selectOrder(${idx})">
+                    <h3>Order #${o.id}</h3>
+                    <p>Seller: ${o.seller_name || 'N/A'}</p>
+                    <p>Customer: ${o.customer_name || 'Walk-in'}</p>
+                    <p>Total: <strong>GHS ${parseFloat(o.total_amount || 0).toFixed(2)}</strong></p>
+                </div>
+            `).join('');
+        }
+
+        function selectOrder(idx) {
+            selectedOrder = queueOrders[idx];
+            displayOrderDetail();
+            displayQueue(queueOrders);
+        }
+
+        function displayOrderDetail() {
+            const o = selectedOrder;
+            const items = o.items_json || [];
+
+            const itemsHtml = items.map(item => `
+                <div class="order-item-row">
+                    <span>${item.product_name} (x${item.quantity})</span>
+                    <strong>GHS ${item.line_total.toFixed(2)}</strong>
+                </div>
+            `).join('');
+
+            const html = `
+                <h2>Order #${o.id}</h2>
+                <div class="order-detail-info">
+                    <p><strong>Seller:</strong> <span>${o.seller_name || 'N/A'}</span></p>
+                    <p><strong>Customer:</strong> <span>${o.customer_name || 'Walk-in'}</span></p>
+                </div>
+
+                <div class="order-items-list">
+                    ${itemsHtml}
+                </div>
+
+                <div class="totals-box">
+                    <div class="total-row">
+                        <span>Subtotal:</span>
+                        <strong>GHS ${parseFloat(o.subtotal || 0).toFixed(2)}</strong>
+                    </div>
+                    <div class="total-row">
+                        <span>Tax (15%):</span>
+                        <strong>GHS ${parseFloat(o.tax || 0).toFixed(2)}</strong>
+                    </div>
+                    <div class="total-row large">
+                        <span>TOTAL:</span>
+                        <strong>GHS ${parseFloat(o.total_amount || 0).toFixed(2)}</strong>
+                    </div>
+                </div>
+
+                <div class="payment-section">
+                    <h3>Payment</h3>
+                    <div class="form-group">
+                        <label>Method:</label>
+                        <select id="paymentMethod">
+                            <option value="">-- Select --</option>
+                            <option value="CASH">Cash</option>
+                            <option value="CARD">Card</option>
+                            <option value="MOMO">Mobile Money</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Amount Paid (GHS):</label>
+                        <input type="number" id="amountPaid" placeholder="0.00" step="0.01" min="${parseFloat(o.total_amount || 0).toFixed(2)}" value="${parseFloat(o.total_amount || 0).toFixed(2)}">
+                    </div>
+                    <div id="changeDisplay" class="change-display" style="display:none;">
+                        Change: GHS <span id="changeAmount">0.00</span>
+                    </div>
+                </div>
+
+                <div class="order-actions">
+                    <button class="btn-process" id="processBtn" onclick="processPayment()" disabled>Complete Sale</button>
+                </div>
+            `;
+
+            document.getElementById('orderDetail').innerHTML = html;
+
+            document.getElementById('paymentMethod').addEventListener('change', checkPaymentReady);
+            document.getElementById('amountPaid').addEventListener('input', updateChangeAmount);
+        }
+
+        function updateChangeAmount() {
+            const amount = parseFloat(document.getElementById('amountPaid').value) || 0;
+            const total = parseFloat(selectedOrder.total_amount) || 0;
+            const change = amount - total;
+
+            if (change >= 0) {
+                document.getElementById('changeDisplay').style.display = 'block';
+                document.getElementById('changeAmount').textContent = change.toFixed(2);
+            } else {
+                document.getElementById('changeDisplay').style.display = 'none';
+            }
+
+            checkPaymentReady();
+        }
+
+        function checkPaymentReady() {
+            const method = document.getElementById('paymentMethod').value;
+            const amount = parseFloat(document.getElementById('amountPaid').value) || 0;
+            const total = parseFloat(selectedOrder.total_amount) || 0;
+
+            const isReady = method && amount >= total;
+            document.getElementById('processBtn').disabled = !isReady;
+        }
+
+        function processPayment() {
+            const method = document.getElementById('paymentMethod').value;
+            const amount = document.getElementById('amountPaid').value;
+
+            if (!method || !amount) {
+                showAlert('Please enter payment details', 'error');
+                return;
+            }
+
+            const token = localStorage.getItem('token');
+
+            fetch(`${API_URL}/pending-orders/${selectedOrder.id}/complete`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    payment_method: method,
+                    amount_paid: amount
+                })
+            })
+            .then(r => r.json())
+            .then(res => {
+                if (res.success) {
+                    showReceipt(res.data);
+                    loadQueue();
+                } else {
+                    showAlert('Error: ' + res.message, 'error');
+                }
+            })
+            .catch(e => showAlert('Error: ' + e.message, 'error'));
+        }
+
+        function showReceipt(data) {
+            const o = selectedOrder;
+            const items = o.items_json || [];
+            const method = document.getElementById('paymentMethod').value;
+            const amount = parseFloat(document.getElementById('amountPaid').value);
+
+            const itemsReceipt = items.map(item => 
+                `${item.product_name}\n  ${item.quantity} x GHS ${item.unit_price.toFixed(2)} = GHS ${item.line_total.toFixed(2)}`
+            ).join('\n');
+
+            const receipt = `
+═══════════════════════════════════
+          PHARMSECURE POS
+         SALES RECEIPT
+
+Date: ${new Date().toLocaleString()}
+Receipt #: ${data.sale_id}
+═══════════════════════════════════
+
+ITEMS:
+${itemsReceipt}
+
+───────────────────────────────────
+Subtotal:        GHS ${parseFloat(o.subtotal).toFixed(2)}
+Tax (15%):       GHS ${parseFloat(o.tax).toFixed(2)}
+───────────────────────────────────
+TOTAL:           GHS ${parseFloat(o.total_amount).toFixed(2)}
+
+PAYMENT:
+Method: ${method}
+Amount Paid:     GHS ${amount.toFixed(2)}
+Change:          GHS ${data.change_amount}
+
+───────────────────────────────────
+Customer: ${o.customer_name || 'Walk-in'}
+Seller: ${o.seller_name}
+
+Thank you for your purchase!
+═══════════════════════════════════
+            `;
+
+            document.getElementById('receiptContent').textContent = receipt;
+            document.getElementById('successModal').classList.add('show');
+        }
+
+        function printReceipt() {
+            window.print();
+        }
+
+        function closeSuccessModal() {
+            document.getElementById('successModal').classList.remove('show');
+            selectedOrder = null;
+            document.getElementById('orderDetail').innerHTML = `
+                <h2>Select Order</h2>
+                <p style="color: #7f8c8d; font-size: 13px;">Click an order to process</p>
+            `;
+        }
+
+        function setupEventListeners() {
+            document.getElementById('logoutBtn').addEventListener('click', () => {
+                localStorage.removeItem('authToken');
+                localStorage.removeItem('user');
+                window.location.href = 'login.html';
+            });
+        }
+
+        function showAlert(msg, type) {
+            const alert = document.getElementById('queueAlert');
+            alert.textContent = msg;
+            alert.className = `alert alert-${type}`;
+            alert.style.display = 'block';
+            setTimeout(() => { alert.style.display = 'none'; }, 4000);
+        }
+
+        function updateTime() {
+            document.getElementById('timeDisplay').textContent = new Date().toLocaleTimeString();
+        }
+    </script>
+</body>
+</html>

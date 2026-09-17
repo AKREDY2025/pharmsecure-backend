@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script>
+    (function() {
+        const token = localStorage.getItem("token");
+        if (!token) {
+            window.location.href = "/login.html";
+        }
+    })();
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PharmSecure Dashboard</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f5f5; color: #333; }
+        .container { display: flex; min-height: 100vh; }
+        .sidebar { width: 250px; background: #2c3e50; color: white; padding: 20px; box-shadow: 2px 0 5px rgba(0,0,0,0.1); }
+        .sidebar h2 { margin-bottom: 20px; font-size: 18px; }
+        .sidebar button { width: 100%; padding: 12px 15px; margin: 8px 0; background: #34495e; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; }
+        .sidebar button:hover { background: #455a64; }
+        .sidebar .logout { background: #e74c3c; margin-top: 30px; }
+        .sidebar .logout:hover { background: #c0392b; }
+        .main { flex: 1; padding: 30px; overflow-y: auto; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .header h1 { font-size: 28px; color: #2c3e50; }
+        .header .info { text-align: right; color: #7f8c8d; font-size: 13px; }
+        .refresh-btn { padding: 8px 15px; background: #3498db; color: white; border: none; border-radius: 4px; cursor: pointer; margin-left: 10px; }
+        .refresh-btn:hover { background: #2980b9; }
+        
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .card h3 { color: #7f8c8d; font-size: 12px; text-transform: uppercase; margin-bottom: 10px; }
+        .card .value { font-size: 28px; font-weight: bold; color: #2c3e50; }
+        .card .unit { font-size: 12px; color: #95a5a6; }
+        .card.highlight { border-left: 4px solid #27ae60; }
+        .card.warning { border-left: 4px solid #f39c12; }
+        .card.danger { border-left: 4px solid #e74c3c; }
+        
+        .charts { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px; }
+        .chart-container { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); position: relative; height: 350px; }
+        .chart-title { font-size: 14px; font-weight: bold; margin-bottom: 15px; color: #2c3e50; }
+        
+        .table-container { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 30px; }
+        .table-title { font-size: 14px; font-weight: bold; margin-bottom: 15px; color: #2c3e50; }
+        table { width: 100%; border-collapse: collapse; }
+        th { background: #34495e; color: white; padding: 12px; text-align: left; font-size: 12px; }
+        td { padding: 10px 12px; border-bottom: 1px solid #ecf0f1; }
+        tr:hover { background: #f9f9f9; }
+        
+        .loading { text-align: center; padding: 40px; color: #7f8c8d; }
+        .error { background: #f8d7da; color: #721c24; padding: 12px; border-radius: 4px; margin-bottom: 20px; }
+        
+        @media (max-width: 1024px) {
+            .charts { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <h2>PharmSecure</h2>
+            <div style="background: #34495e; padding: 12px; border-radius: 4px; margin-bottom: 20px; font-size: 12px;">
+                <div id="currentUser" style="font-weight: bold;">Loading...</div>
+                <div style="color: #95a5a6; margin-top: 4px;">Manager Dashboard</div>
+            </div>
+            <button onclick="refreshData()">🔄 Refresh Now</button>
+            <button onclick="autoToggle()" id="autoBtn" style="background: #27ae60;">⏱ Auto (ON)</button>
+            <button onclick="window.location.href='reports.html'" style="background: #3498db;">📑 Reports</button>
+            <button onclick="window.location.href='printing.html'" style="background: #27ae60;">📄 Printing</button>
+            <button class="logout" onclick="logout()">Logout</button>
+        </div>
+
+        <div class="main">
+            <div class="header">
+                <div>
+                    <h1>📊 Sales Dashboard</h1>
+                </div>
+                <div class="info">
+                    <div id="currentTime">Loading...</div>
+                    <div id="refreshStatus" style="color: #27ae60;">Last refreshed: --</div>
+                </div>
+            </div>
+
+            <div id="errorContainer"></div>
+
+            <!-- Summary Cards -->
+            <div class="grid">
+                <div class="card highlight">
+                    <h3>Today's Revenue</h3>
+                    <div class="value" id="totalRevenue">GHS 0.00</div>
+                    <div class="unit">Today</div>
+                </div>
+                <div class="card highlight">
+                    <h3>Transactions</h3>
+                    <div class="value" id="transactionCount">0</div>
+                    <div class="unit">Orders</div>
+                </div>
+                <div class="card">
+                    <h3>Average Order</h3>
+                    <div class="value" id="avgOrder">GHS 0.00</div>
+                    <div class="unit">Per order</div>
+                </div>
+                <div class="card warning">
+                    <h3>Max Order</h3>
+                    <div class="value" id="maxOrder">GHS 0.00</div>
+                    <div class="unit">Highest</div>
+                </div>
+            </div>
+
+            <!-- Charts -->
+            <div class="charts">
+                <div class="chart-container">
+                    <div class="chart-title">📈 Hourly Sales Today</div>
+                    <canvas id="hourlySalesChart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <div class="chart-title">📊 Revenue Trend (30 Days)</div>
+                    <canvas id="trendChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Top Products Table -->
+            <div class="table-container">
+                <div class="table-title">🏆 Top 10 Products Today</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>Qty Sold</th>
+                            <th>Revenue</th>
+                            <th>Unit Price</th>
+                        </tr>
+                    </thead>
+                    <tbody id="topProductsBody">
+                        <tr><td colspan="4" style="text-align: center; color: #7f8c8d;">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Seller Performance Table -->
+            <div class="table-container">
+                <div class="table-title">👥 Seller Performance Today</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Seller</th>
+                            <th>Transactions</th>
+                            <th>Revenue</th>
+                            <th>Avg Order</th>
+                        </tr>
+                    </thead>
+                    <tbody id="sellerPerfBody">
+                        <tr><td colspan="4" style="text-align: center; color: #7f8c8d;">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script>
+        const API_URL = 'https://pharmsecure-api.onrender.com/api';
+        let autoRefresh = true;
+        let refreshInterval = null;
+        let hourlySalesChart = null;
+        let trendChart = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                window.location.href = '/login.html';
+                return;
+            }
+            const user = JSON.parse(localStorage.getItem('user')) || {};
+            document.getElementById('currentUser').textContent = user.username || 'User';
+            
+            updateTime();
+            setInterval(updateTime, 1000);
+            refreshData();
+            startAutoRefresh();
+        });
+
+        function updateTime() {
+            document.getElementById('currentTime').textContent = new Date().toLocaleTimeString();
+        }
+
+        function autoToggle() {
+            autoRefresh = !autoRefresh;
+            const btn = document.getElementById('autoBtn');
+            if (autoRefresh) {
+                btn.textContent = '⏱ Auto (ON)';
+                btn.style.background = '#27ae60';
+                startAutoRefresh();
+            } else {
+                btn.textContent = '⏱ Auto (OFF)';
+                btn.style.background = '#95a5a6';
+                clearInterval(refreshInterval);
+            }
+        }
+
+        function startAutoRefresh() {
+            if (refreshInterval) clearInterval(refreshInterval);
+            refreshInterval = setInterval(refreshData, 30000);
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = '/login.html';
+        }
+
+        async function refreshData() {
+            const token = localStorage.getItem('token');
+            if (!token) return;
+
+            try {
+                const [summary, hourly, trend, topProducts, sellers] = await Promise.all([
+                    fetch(API_URL + '/dashboard/summary', { headers: { 'Authorization': 'Bearer ' + token } }).then(r => r.json()),
+                    fetch(API_URL + '/dashboard/sales-today', { headers: { 'Authorization': 'Bearer ' + token } }).then(r => r.json()),
+                    fetch(API_URL + '/dashboard/revenue-trend?days=30', { headers: { 'Authorization': 'Bearer ' + token } }).then(r => r.json()),
+                    fetch(API_URL + '/dashboard/top-products', { headers: { 'Authorization': 'Bearer ' + token } }).then(r => r.json()),
+                    fetch(API_URL + '/dashboard/seller-performance', { headers: { 'Authorization': 'Bearer ' + token } }).then(r => r.json())
+                ]);
+
+                if (summary.success) {
+                    const s = summary.data;
+                    document.getElementById('totalRevenue').textContent = 'GHS ' + parseFloat(s.total_revenue || 0).toFixed(2);
+                    document.getElementById('transactionCount').textContent = s.transaction_count || 0;
+                    document.getElementById('avgOrder').textContent = 'GHS ' + parseFloat(s.avg_order_value || 0).toFixed(2);
+                    document.getElementById('maxOrder').textContent = 'GHS ' + parseFloat(s.max_order || 0).toFixed(2);
+                }
+
+                if (hourly.success && hourly.data.hourly_sales.length > 0) {
+                    updateHourlySalesChart(hourly.data.hourly_sales);
+                }
+
+                if (trend.success && trend.data.trend.length > 0) {
+                    updateTrendChart(trend.data.trend);
+                }
+
+                if (topProducts.success) {
+                    updateTopProductsTable(topProducts.data.top_products);
+                }
+
+                if (sellers.success) {
+                    updateSellerTable(sellers.data.sellers);
+                }
+
+                document.getElementById('refreshStatus').textContent = 'Last refreshed: ' + new Date().toLocaleTimeString();
+                document.getElementById('errorContainer').innerHTML = '';
+            } catch (error) {
+                console.error('Refresh error:', error);
+            }
+        }
+
+        function updateHourlySalesChart(data) {
+            const labels = data.map(d => d.hour + ':00').map(h => h.padStart(5, '0'));
+            const revenues = data.map(d => parseFloat(d.revenue) || 0);
+
+            if (hourlySalesChart) {
+                hourlySalesChart.data.labels = labels;
+                hourlySalesChart.data.datasets[0].data = revenues;
+                hourlySalesChart.update();
+            } else {
+                const ctx = document.getElementById('hourlySalesChart').getContext('2d');
+                hourlySalesChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Revenue (GHS)',
+                            data: revenues,
+                            backgroundColor: '#3498db',
+                            borderColor: '#2980b9',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: { y: { beginAtZero: true } }
+                    }
+                });
+            }
+        }
+
+        function updateTrendChart(data) {
+            const labels = data.map(d => new Date(d.date).toLocaleDateString());
+            const revenues = data.map(d => parseFloat(d.revenue) || 0);
+
+            if (trendChart) {
+                trendChart.data.labels = labels;
+                trendChart.data.datasets[0].data = revenues;
+                trendChart.update();
+            } else {
+                const ctx = document.getElementById('trendChart').getContext('2d');
+                trendChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Daily Revenue (GHS)',
+                            data: revenues,
+                            borderColor: '#27ae60',
+                            backgroundColor: 'rgba(39, 174, 96, 0.1)',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: true } },
+                        scales: { y: { beginAtZero: true } }
+                    }
+                });
+            }
+        }
+
+        function updateTopProductsTable(products) {
+            const tbody = document.getElementById('topProductsBody');
+            if (products.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #7f8c8d;">No products sold yet</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = products.map(p => `
+                <tr>
+                    <td><strong>${p.name}</strong></td>
+                    <td>${p.total_qty}</td>
+                    <td>GHS ${parseFloat(p.total_revenue).toFixed(2)}</td>
+                    <td>GHS ${parseFloat(p.unit_price).toFixed(2)}</td>
+                </tr>
+            `).join('');
+        }
+
+        function updateSellerTable(sellers) {
+            const tbody = document.getElementById('sellerPerfBody');
+            if (sellers.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #7f8c8d;">No sales yet</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = sellers.map(s => `
+                <tr>
+                    <td><strong>${s.seller_name}</strong></td>
+                    <td>${s.transaction_count}</td>
+                    <td>GHS ${parseFloat(s.total_revenue).toFixed(2)}</td>
+                    <td>GHS ${parseFloat(s.avg_order_value).toFixed(2)}</td>
+                </tr>
+            `).join('');
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>PharmSecure POS - RBAC</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: Arial, sans-serif; background: #f5f5f5; }
+    
+    /* LOGIN */
+    .login-container { display: flex; align-items: center; justify-content: center; min-height: 100vh; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+    .login-box { background: white; padding: 40px; border-radius: 10px; width: 400px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); }
+    .login-box h1 { text-align: center; color: #333; margin-bottom: 30px; }
+    .form-group { margin-bottom: 20px; }
+    .form-group label { display: block; color: #333; font-weight: 500; margin-bottom: 8px; }
+    .form-group input, .form-group select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; }
+    button { padding: 12px 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; }
+    button:hover { opacity: 0.9; }
+    
+    /* NAVBAR */
+    .navbar { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 15px 40px; display: flex; justify-content: space-between; align-items: center; color: white; }
+    .navbar h2 { font-size: 24px; }
+    .navbar-right { display: flex; align-items: center; gap: 20px; }
+    .user-info { font-size: 14px; }
+    .nav-links { display: flex; gap: 10px; }
+    .nav-links button { background: transparent; border: 1px solid white; color: white; padding: 8px 15px; }
+    .nav-links button.active { background: rgba(255,255,255,0.3); }
+    
+    /* PAGES */
+    .page { display: none; padding: 40px; }
+    .page.show { display: block; }
+    
+    /* DASHBOARD */
+    .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 40px; }
+    .stat-card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+    .stat-card h3 { font-size: 14px; color: #666; margin-bottom: 10px; }
+    .stat-card .number { font-size: 32px; font-weight: bold; color: #667eea; }
+    
+    /* SECTIONS */
+    .section { background: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+    .section h2 { margin-bottom: 20px; color: #333; }
+    
+    /* FORM */
+    .form-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 15px; }
+    .form-row input, .form-row select { padding: 10px; border: 1px solid #ddd; border-radius: 6px; }
+    .form-row button { grid-column: 4; }
+    
+    /* TABLE */
+    .table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    .table th, .table td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+    .table th { background: #f5f5f5; font-weight: 600; color: #333; }
+    .table tr:hover { background: #f9f9f9; }
+    .delete-btn { background: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; }
+    .edit-btn { background: #007bff; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; margin-right: 5px; }
+    
+    /* SCAN */
+    .scan-input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; margin-bottom: 15px; font-size: 16px; }
+    
+    .cart { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+    .cart-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; }
+    .cart-total { font-size: 18px; font-weight: bold; padding: 15px 0; color: #667eea; }
+    .checkout-btn { width: 100%; background: #28a745; color: white; padding: 12px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; }
+    
+    .role-badge { display: inline-block; padding: 5px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+    .role-admin { background: #dc3545; color: white; }
+    .role-manager { background: #007bff; color: white; }
+    .role-cashier { background: #28a745; color: white; }
+    .role-warehouse { background: #ffc107; color: black; }
+  </style>
+</head>
+<body>
+  <!-- LOGIN PAGE -->
+  <div id="loginPage" class="login-container">
+    <div class="login-box">
+      <h1>PharmSecure POS</h1>
+      <form onsubmit="handleLogin(event)">
+        <div class="form-group">
+          <label>Username</label>
+          <input type="text" id="username" placeholder="Enter username" required>
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="password" placeholder="Enter password" required>
+        </div>
+        <button type="submit" style="width: 100%;">Login</button>
+      </form>
+      <p style="text-align: center; margin-top: 20px; color: #666; font-size: 12px;">
+        Demo Users:<br>
+        admin/admin (Admin)<br>
+        manager/manager (Manager)<br>
+        cashier/cashier (Cashier)<br>
+        warehouse/warehouse (Warehouse)
+      </p>
+    </div>
+  </div>
+
+  <!-- MAIN APP -->
+  <div id="mainApp" style="display: none;">
+    <!-- NAVBAR -->
+    <div class="navbar">
+      <h2>PharmSecure POS</h2>
+      <div class="navbar-right">
+        <div class="user-info">
+          <span id="currentUser">User</span> - 
+          <span class="role-badge" id="currentRole"></span>
+        </div>
+        <div class="nav-links">
+          <button class="active" onclick="showPage('dashboard')">Dashboard</button>
+          <button id="invBtn" onclick="showPage('inventory')" style="display: none;">Inventory</button>
+          <button id="salesBtn" onclick="showPage('sales')" style="display: none;">Sales</button>
+          <button id="usersBtn" onclick="showPage('users')" style="display: none;">User Management</button>
+          <button onclick="handleLogout()">Logout</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- DASHBOARD PAGE -->
+    <div id="dashboard" class="page show">
+      <h1>Dashboard</h1>
+      <div class="stats">
+        <div class="stat-card">
+          <h3>📦 Total Products</h3>
+          <div class="number" id="totalProducts">0</div>
+        </div>
+        <div class="stat-card">
+          <h3>⚠️ Low Stock</h3>
+          <div class="number" id="lowStock">0</div>
+        </div>
+        <div class="stat-card">
+          <h3>💰 Today's Sales</h3>
+          <div class="number" id="todaysSales">GHS 0</div>
+        </div>
+        <div class="stat-card">
+          <h3>📊 Total Value</h3>
+          <div class="number" id="inventoryValue">GHS 0</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- INVENTORY PAGE -->
+    <div id="inventory" class="page">
+      <h1>Inventory Management</h1>
+      
+      <div class="section">
+        <h2>Add New Product</h2>
+        <div class="form-row">
+          <input type="text" id="productName" placeholder="Product Name" required>
+          <input type="text" id="productSupplier" placeholder="Supplier Name" required>
+          <input type="number" id="productPrice" placeholder="Price (GHS)" step="0.01" required>
+          <input type="number" id="productQuantity" placeholder="Quantity" required>
+        </div>
+        <button onclick="addProduct()" style="width: 100%; padding: 12px;">Add Product</button>
+      </div>
+
+      <div class="section">
+        <h2>Products in Stock</h2>
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Product Name</th>
+              <th>Supplier</th>
+              <th>Price (GHS)</th>
+              <th>Quantity</th>
+              <th>Total Value</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="inventoryTable">
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- SALES PAGE -->
+    <div id="sales" class="page">
+      <h1>Sales / Checkout</h1>
+      
+      <div class="section">
+        <h2>Scan Product</h2>
+        <input type="text" id="scanInput" class="scan-input" placeholder="Scan or type product name..." onkeypress="handleScan(event)">
+      </div>
+
+      <div class="cart">
+        <h2>Shopping Cart</h2>
+        <div id="cartItems">
+        </div>
+        <div class="cart-total">Total: <span id="cartTotal">GHS 0</span></div>
+        <button class="checkout-btn" onclick="checkout()">Checkout</button>
+      </div>
+    </div>
+
+    <!-- USER MANAGEMENT PAGE -->
+    <div id="users" class="page">
+      <h1>User Management</h1>
+      
+      <div class="section">
+        <h2>Create New User</h2>
+        <div class="form-row">
+          <input type="text" id="newUsername" placeholder="Username" required>
+          <input type="password" id="newPassword" placeholder="Password" required>
+          <select id="newRole" required>
+            <option value="">Select Role</option>
+            <option value="admin">Admin</option>
+            <option value="manager">Manager</option>
+            <option value="cashier">Cashier</option>
+            <option value="warehouse">Warehouse</option>
+          </select>
+          <button onclick="createUser()">Create User</button>
+        </div>
+      </div>
+
+      <div class="section">
+        <h2>Active Users</h2>
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Username</th>
+              <th>Role</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="usersTable">
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Initialize data
+    let users = JSON.parse(localStorage.getItem('pharmsecure_users')) || [
+      { id: 1, username: 'admin', password: 'admin', role: 'admin' },
+      { id: 2, username: 'manager', password: 'manager', role: 'manager' },
+      { id: 3, username: 'cashier', password: 'cashier', role: 'cashier' },
+      { id: 4, username: 'warehouse', password: 'warehouse', role: 'warehouse' }
+    ];
+    
+    let inventory = JSON.parse(localStorage.getItem('pharmsecure_inventory')) || [];
+    let cart = [];
+    let totalSales = JSON.parse(localStorage.getItem('pharmsecure_sales')) || 0;
+    let currentUser = null;
+
+    // Save users on init
+    localStorage.setItem('pharmsecure_users', JSON.stringify(users));
+
+    const roles = {
+      admin: ['dashboard', 'inventory', 'sales', 'users'],
+      manager: ['dashboard', 'inventory', 'sales'],
+      cashier: ['dashboard', 'sales'],
+      warehouse: ['inventory']
+    };
+
+    const roleColors = {
+      admin: 'role-admin',
+      manager: 'role-manager',
+      cashier: 'role-cashier',
+      warehouse: 'role-warehouse'
+    };
+
+    function handleLogin(e) {
+      e.preventDefault();
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+      
+      const user = users.find(u => u.username === username && u.password === password);
+      
+      if (!user) {
+        alert('Invalid credentials');
+        return;
+      }
+
+      currentUser = user;
+      document.getElementById('loginPage').style.display = 'none';
+      document.getElementById('mainApp').style.display = 'block';
+      
+      updateUserDisplay();
+      updateNavigation();
+      updateDashboard();
+      loadInventory();
+      loadUsers();
+    }
+
+    function updateUserDisplay() {
+      document.getElementById('currentUser').textContent = currentUser.username;
+      const roleEl = document.getElementById('currentRole');
+      roleEl.textContent = currentUser.role.toUpperCase();
+      roleEl.className = `role-badge ${roleColors[currentUser.role]}`;
+    }
+
+    function updateNavigation() {
+      const allowedPages = roles[currentUser.role];
+      
+      document.getElementById('invBtn').style.display = allowedPages.includes('inventory') ? 'block' : 'none';
+      document.getElementById('salesBtn').style.display = allowedPages.includes('sales') ? 'block' : 'none';
+      document.getElementById('usersBtn').style.display = allowedPages.includes('users') ? 'block' : 'none';
+    }
+
+    function handleLogout() {
+      currentUser = null;
+      document.getElementById('loginPage').style.display = 'flex';
+      document.getElementById('mainApp').style.display = 'none';
+      document.getElementById('username').value = '';
+      document.getElementById('password').value = '';
+    }
+
+    function showPage(page) {
+      if (!roles[currentUser.role].includes(page)) {
+        alert('Access Denied');
+        return;
+      }
+
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('show'));
+      document.getElementById(page).classList.add('show');
+      
+      document.querySelectorAll('.nav-links button').forEach(b => b.classList.remove('active'));
+      event.target.classList.add('active');
+      
+      if (page === 'sales') {
+        setTimeout(() => document.getElementById('scanInput').focus(), 100);
+      }
+    }
+
+    function addProduct() {
+      const name = document.getElementById('productName').value;
+      const supplier = document.getElementById('productSupplier').value;
+      const price = parseFloat(document.getElementById('productPrice').value);
+      const quantity = parseInt(document.getElementById('productQuantity').value);
+
+      if (!name || !supplier || !price || !quantity) {
+        alert('Please fill all fields');
+        return;
+      }
+
+      inventory.push({ id: Date.now(), name, supplier, price, quantity });
+      localStorage.setItem('pharmsecure_inventory', JSON.stringify(inventory));
+      
+      document.getElementById('productName').value = '';
+      document.getElementById('productSupplier').value = '';
+      document.getElementById('productPrice').value = '';
+      document.getElementById('productQuantity').value = '';
+      
+      loadInventory();
+      updateDashboard();
+    }
+
+    function loadInventory() {
+      const table = document.getElementById('inventoryTable');
+      table.innerHTML = '';
+
+      inventory.forEach(product => {
+        const totalValue = (product.price * product.quantity).toFixed(2);
+        const row = `
+          <tr>
+            <td>${product.name}</td>
+            <td>${product.supplier}</td>
+            <td>${product.price.toFixed(2)}</td>
+            <td>${product.quantity}</td>
+            <td>${totalValue}</td>
+            <td><button class="delete-btn" onclick="deleteProduct(${product.id})">Delete</button></td>
+          </tr>
+        `;
+        table.innerHTML += row;
+      });
+    }
+
+    function deleteProduct(id) {
+      inventory = inventory.filter(p => p.id !== id);
+      localStorage.setItem('pharmsecure_inventory', JSON.stringify(inventory));
+      loadInventory();
+      updateDashboard();
+    }
+
+    function handleScan(event) {
+      if (event.key !== 'Enter') return;
+      
+      const input = document.getElementById('scanInput').value.toLowerCase();
+      const product = inventory.find(p => p.name.toLowerCase().includes(input));
+
+      if (!product) {
+        alert('Product not found');
+        return;
+      }
+
+      if (product.quantity <= 0) {
+        alert('Out of stock');
+        return;
+      }
+
+      const cartItem = cart.find(c => c.id === product.id);
+      if (cartItem) {
+        cartItem.cartQuantity++;
+      } else {
+        cart.push({ ...product, cartQuantity: 1 });
+      }
+
+      document.getElementById('scanInput').value = '';
+      updateCart();
+    }
+
+    function updateCart() {
+      const cartDiv = document.getElementById('cartItems');
+      cartDiv.innerHTML = '';
+      let total = 0;
+
+      cart.forEach(item => {
+        const itemTotal = (item.price * item.cartQuantity).toFixed(2);
+        total += parseFloat(itemTotal);
+        
+        const cartRow = `
+          <div class="cart-item">
+            <div>${item.name} x ${item.cartQuantity}</div>
+            <div>GHS ${itemTotal}</div>
+            <button class="delete-btn" onclick="removeFromCart(${item.id})" style="margin-left: 10px;">Remove</button>
+          </div>
+        `;
+        cartDiv.innerHTML += cartRow;
+      });
+
+      document.getElementById('cartTotal').textContent = `GHS ${total.toFixed(2)}`;
+    }
+
+    function removeFromCart(id) {
+      cart = cart.filter(c => c.id !== id);
+      updateCart();
+    }
+
+    function checkout() {
+      if (cart.length === 0) {
+        alert('Cart is empty');
+        return;
+      }
+
+      let total = 0;
+      cart.forEach(item => {
+        const product = inventory.find(p => p.id === item.id);
+        product.quantity -= item.cartQuantity;
+        total += item.price * item.cartQuantity;
+      });
+
+      localStorage.setItem('pharmsecure_inventory', JSON.stringify(inventory));
+      totalSales += total;
+      localStorage.setItem('pharmsecure_sales', totalSales);
+
+      alert(`✅ Checkout successful! Total: GHS ${total.toFixed(2)}`);
+      cart = [];
+      updateCart();
+      updateDashboard();
+      loadInventory();
+    }
+
+    function updateDashboard() {
+      const totalProducts = inventory.reduce((sum, p) => sum + p.quantity, 0);
+      const lowStock = inventory.filter(p => p.quantity < 10).length;
+      const inventoryValue = inventory.reduce((sum, p) => sum + (p.price * p.quantity), 0);
+
+      document.getElementById('totalProducts').textContent = totalProducts;
+      document.getElementById('lowStock').textContent = lowStock;
+      document.getElementById('todaysSales').textContent = `GHS ${totalSales.toFixed(2)}`;
+      document.getElementById('inventoryValue').textContent = `GHS ${inventoryValue.toFixed(2)}`;
+    }
+
+    function createUser() {
+      const username = document.getElementById('newUsername').value;
+      const password = document.getElementById('newPassword').value;
+      const role = document.getElementById('newRole').value;
+
+      if (!username || !password || !role) {
+        alert('Please fill all fields');
+        return;
+      }
+
+      if (users.find(u => u.username === username)) {
+        alert('User already exists');
+        return;
+      }
+
+      users.push({ id: Date.now(), username, password, role });
+      localStorage.setItem('pharmsecure_users', JSON.stringify(users));
+
+      document.getElementById('newUsername').value = '';
+      document.getElementById('newPassword').value = '';
+      document.getElementById('newRole').value = '';
+
+      loadUsers();
+      alert('User created successfully');
+    }
+
+    function loadUsers() {
+      const table = document.getElementById('usersTable');
+      table.innerHTML = '';
+
+      users.forEach(user => {
+        const row = `
+          <tr>
+            <td>${user.username}</td>
+            <td><span class="role-badge ${roleColors[user.role]}">${user.role.toUpperCase()}</span></td>
+            <td><button class="delete-btn" onclick="deleteUser(${user.id})">Delete</button></td>
+          </tr>
+        `;
+        table.innerHTML += row;
+      });
+    }
+
+    function deleteUser(id) {
+      if (users.length === 1) {
+        alert('Cannot delete the last user');
+        return;
+      }
+
+      users = users.filter(u => u.id !== id);
+      localStorage.setItem('pharmsecure_users', JSON.stringify(users));
+      loadUsers();
+    }
+  </script>
+</body>
+</html>
