@@ -3,6 +3,7 @@ const { Pool } = require('pg');
 // Use DATABASE_URL for production (Render), or individual env vars for local dev
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL || `postgresql://${process.env.DB_USER || 'pharmsecure_user'}:${process.env.DB_PASSWORD || 'pharmsecure_password_123'}@${process.env.DB_HOST || 'localhost'}:${process.env.DB_PORT || 5432}/${process.env.DB_NAME || 'pharmsecure'}`,
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
 });
 
 pool.on('error', (err) => {
