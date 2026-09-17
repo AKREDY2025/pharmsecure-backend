@@ -58,7 +58,8 @@ app.use((req, res) => {
   res.status(404).json({ success: false, message: 'Endpoint not found' });
 });
 
-pool.connect()
+// Test database connection and start server
+pool.query('SELECT NOW()')
   .then(() => {
     console.log('Database connected successfully');
     app.listen(PORT, () => {
