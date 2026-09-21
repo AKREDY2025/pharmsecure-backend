@@ -43,7 +43,16 @@
                 totalTax: "Total Tax",
                 generateReport: "🔍 Generate Report",
                 exportCSV: "📥 Export CSV",
-                reset: "🔄 Reset"
+                reset: "🔄 Reset",
+                salesReport: "📋 Sales Report",
+                allPaymentMethods: "All Payment Methods",
+                cash: "Cash",
+                card: "Card",
+                mobileMoney: "Mobile Money",
+                selectDateRange: "Select date range and click "Generate Report"",
+                productProfitability: "💰 Product Profitability",
+                sellerPerformance: "👥 Seller Performance",
+                allSellers: "All Sellers"
             },
             fr: {
                 title: "PharmSecure",
@@ -77,7 +86,16 @@
                 totalTax: "Taxe Totale",
                 generateReport: "🔍 Générer un Rapport",
                 exportCSV: "📥 Exporter CSV",
-                reset: "🔄 Réinitialiser"
+                reset: "🔄 Réinitialiser",
+                salesReport: "📋 Rapport de Ventes",
+                allPaymentMethods: "Tous les Modes de Paiement",
+                cash: "Espèces",
+                card: "Carte",
+                mobileMoney: "Argent Mobile",
+                selectDateRange: "Sélectionnez la plage de dates et cliquez sur \"Générer un Rapport\"",
+                productProfitability: "💰 Rentabilité des Produits",
+                sellerPerformance: "👥 Performance des Vendeurs",
+                allSellers: "Tous les Vendeurs"
             }
         };
 
@@ -246,39 +264,39 @@
 
             <!-- Sales Report with Advanced Filtering -->
             <div class="table-container">
-                <div class="table-title">📋 Sales Report</div>
+                <div class="table-title" data-i18n="salesReport">📋 Sales Report</div>
                 <div style="display: flex; gap: 10px; margin-bottom: 15px;">
                     <input type="text" id="salesSearch" class="search-box" placeholder="Search by customer, seller, or order number..." style="flex: 1; margin-bottom: 0;">
                     <select id="salesPaymentFilter" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-                        <option value="">All Payment Methods</option>
-                        <option value="CASH">Cash</option>
-                        <option value="CARD">Card</option>
-                        <option value="MOMO">Mobile Money</option>
+                        <option value="" data-i18n="allPaymentMethods">All Payment Methods</option>
+                        <option value="CASH" data-i18n="cash">Cash</option>
+                        <option value="CARD" data-i18n="card">Card</option>
+                        <option value="MOMO" data-i18n="mobileMoney">Mobile Money</option>
                     </select>
                 </div>
                 <div id="salesTableContainer">
-                    <div class="empty">Select date range and click "Generate Report"</div>
+                    <div class="empty" data-i18n="selectDateRange">Select date range and click "Generate Report"</div>
                 </div>
                 <div class="pagination" id="salesPagination"></div>
             </div>
 
             <!-- Product Profitability with Search -->
             <div class="table-container">
-                <div class="table-title">💰 Product Profitability</div>
+                <div class="table-title" data-i18n="productProfitability">💰 Product Profitability</div>
                 <input type="text" id="productSearch" class="search-box" placeholder="Search products by name or SKU...">
                 <div id="profitabilityTableContainer">
-                    <div class="empty">Select date range and click "Generate Report"</div>
+                    <div class="empty" data-i18n="selectDateRange">Select date range and click "Generate Report"</div>
                 </div>
             </div>
 
             <!-- Seller Performance with Filter -->
             <div class="table-container">
-                <div class="table-title">👥 Seller Performance</div>
+                <div class="table-title" data-i18n="sellerPerformance">👥 Seller Performance</div>
                 <select id="sellerFilter" style="width: 200px; padding: 8px; border: 1px solid #ddd; border-radius: 4px; margin-bottom: 15px;">
-                    <option value="">All Sellers</option>
+                    <option value="" data-i18n="allSellers">All Sellers</option>
                 </select>
                 <div id="sellerTableContainer">
-                    <div class="empty">Select date range and click "Generate Report"</div>
+                    <div class="empty" data-i18n="selectDateRange">Select date range and click "Generate Report"</div>
                 </div>
             </div>
         </div>
@@ -391,7 +409,7 @@
                 // Sellers & populate filter
                 if (sellers.success) {
                     const sellerFilter = document.getElementById('sellerFilter');
-                    sellerFilter.innerHTML = '<option value="">All Sellers</option>';
+                    sellerFilter.innerHTML = '<option value="" data-i18n="allSellers">All Sellers</option>';
                     sellers.data.sellers.forEach(s => {
                         const opt = document.createElement('option');
                         opt.value = s.seller_name;
