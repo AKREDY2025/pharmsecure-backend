@@ -25,10 +25,37 @@
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
             max-width: 400px;
             width: 90%;
+            position: relative;
+        }
+        .language-toggle {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 8px;
+        }
+        .lang-btn {
+            padding: 6px 12px;
+            border: 1px solid #ccc;
+            background: white;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        .lang-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+        .lang-btn:hover {
+            border-color: #667eea;
         }
         .login-header {
             text-align: center;
             margin-bottom: 30px;
+            margin-top: 20px;
         }
         .login-header h1 {
             font-size: 28px;
@@ -55,11 +82,11 @@
             border: 1px solid #bdc3c7;
             border-radius: 5px;
             font-size: 14px;
+            transition: border-color 0.3s;
         }
         .form-group input:focus {
             outline: none;
             border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
         .login-button {
             width: 100%;
@@ -69,23 +96,23 @@
             border: none;
             border-radius: 5px;
             font-size: 16px;
-            font-weight: bold;
+            font-weight: 600;
             cursor: pointer;
-            margin-top: 10px;
+            transition: transform 0.2s;
         }
         .login-button:hover {
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
         }
         .login-button:disabled {
-            background: #bdc3c7;
+            opacity: 0.6;
             cursor: not-allowed;
         }
         .alert {
+            display: none;
             padding: 12px;
             border-radius: 5px;
             margin-bottom: 20px;
-            font-size: 13px;
+            font-size: 14px;
         }
         .alert-success {
             background: #d4edda;
@@ -98,53 +125,59 @@
             border: 1px solid #f5c6cb;
         }
         .demo-users {
-            margin-top: 30px;
+            margin-top: 25px;
             padding-top: 20px;
             border-top: 1px solid #ecf0f1;
-            font-size: 12px;
-            color: #7f8c8d;
         }
         .demo-users h4 {
-            margin-bottom: 10px;
             color: #2c3e50;
+            font-size: 13px;
+            margin-bottom: 12px;
         }
         .demo-user {
-            background: #f9f9f9;
-            padding: 8px;
+            padding: 10px;
             margin-bottom: 8px;
+            background: #f8f9fa;
             border-radius: 4px;
             cursor: pointer;
+            transition: background 0.2s;
+            font-size: 13px;
         }
         .demo-user:hover {
-            background: #ecf0f1;
+            background: #e9ecef;
         }
         .demo-user strong {
             color: #2c3e50;
         }
         .demo-user .role {
+            color: #7f8c8d;
             font-size: 11px;
-            color: #95a5a6;
             margin-top: 3px;
         }
     </style>
 </head>
 <body>
     <div class="login-container">
-        <div class="login-header">
-            <h1>🏥 PharmSecure</h1>
-            <p>Pharmacy POS System - Phase 4</p>
+        <div class="language-toggle">
+            <button class="lang-btn active" onclick="setLanguage('en')" data-lang="en">EN</button>
+            <button class="lang-btn" onclick="setLanguage('fr')" data-lang="fr">FR</button>
         </div>
 
-        <div id="alert" style="display: none;"></div>
+        <div id="alert" class="alert"></div>
+
+        <div class="login-header">
+            <h1 id="title">PharmSecure</h1>
+            <p id="subtitle">Pharmacy Management System</p>
+        </div>
 
         <form id="loginForm" onsubmit="handleLogin(event)">
             <div class="form-group">
-                <label for="username">Username</label>
+                <label for="username" id="lblUsername">Username</label>
                 <input type="text" id="username" placeholder="Enter your username" required>
             </div>
 
             <div class="form-group">
-                <label for="password">Password</label>
+                <label for="password" id="lblPassword">Password</label>
                 <input type="password" id="password" placeholder="Enter your password" required>
             </div>
 
@@ -152,17 +185,17 @@
         </form>
 
         <div class="demo-users">
-            <h4>Demo Credentials:</h4>
+            <h4 id="demoTitle">Demo Credentials:</h4>
             <div class="demo-user" onclick="fillDemo('seller1', 'seller123')">
-                <strong>Seller</strong>
+                <strong id="demo1">Seller</strong>
                 <div class="role">seller1 / seller123</div>
             </div>
             <div class="demo-user" onclick="fillDemo('cashier1', 'cashier123')">
-                <strong>Cashier</strong>
+                <strong id="demo2">Cashier</strong>
                 <div class="role">cashier1 / cashier123</div>
             </div>
             <div class="demo-user" onclick="fillDemo('admin', 'admin123')">
-                <strong>Admin</strong>
+                <strong id="demo3">Admin</strong>
                 <div class="role">admin / admin123</div>
             </div>
         </div>
@@ -170,33 +203,85 @@
 
     <script>
         const API_URL = 'https://pharmsecure-api.onrender.com/api';
+        let currentLanguage = localStorage.getItem('language') || 'en';
+
+        const translations = {
+            en: {
+                title: 'PharmSecure',
+                subtitle: 'Pharmacy Management System',
+                lblUsername: 'Username',
+                lblPassword: 'Password',
+                signinBtn: 'Sign In',
+                signinBtnLoading: 'Signing in...',
+                demoTitle: 'Demo Credentials:',
+                demo1: 'Seller',
+                demo2: 'Cashier',
+                demo3: 'Admin'
+            },
+            fr: {
+                title: 'PharmSecure',
+                subtitle: 'Système de Gestion de Pharmacie',
+                lblUsername: 'Nom d\'utilisateur',
+                lblPassword: 'Mot de passe',
+                signinBtn: 'Connexion',
+                signinBtnLoading: 'Connexion en cours...',
+                demoTitle: 'Identifiants de Démonstration:',
+                demo1: 'Vendeur',
+                demo2: 'Caissier',
+                demo3: 'Administrateur'
+            }
+        };
+
+        function setLanguage(lang) {
+            currentLanguage = lang;
+            localStorage.setItem('language', lang);
+            updateUIText();
+            document.querySelectorAll('.lang-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.lang === lang);
+            });
+        }
+
+        function updateUIText() {
+            const t = translations[currentLanguage];
+            document.getElementById('title').textContent = t.title;
+            document.getElementById('subtitle').textContent = t.subtitle;
+            document.getElementById('lblUsername').textContent = t.lblUsername;
+            document.getElementById('lblPassword').textContent = t.lblPassword;
+            document.getElementById('loginBtn').textContent = t.signinBtn;
+            document.getElementById('demoTitle').textContent = t.demoTitle;
+            document.getElementById('demo1').textContent = t.demo1;
+            document.getElementById('demo2').textContent = t.demo2;
+            document.getElementById('demo3').textContent = t.demo3;
+        }
 
         function handleLogin(event) {
             event.preventDefault();
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
             const loginBtn = document.getElementById('loginBtn');
+            const t = translations[currentLanguage];
 
             loginBtn.disabled = true;
-            loginBtn.innerHTML = 'Signing in...';
+            loginBtn.textContent = t.signinBtnLoading;
 
             fetch(`${API_URL}/auth/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username, password })
+                body: JSON.stringify({ username, password, language: currentLanguage })
             })
             .then(r => r.json())
             .then(res => {
                 if (res.success) {
                     localStorage.setItem('token', res.data.token);
                     localStorage.setItem('user', JSON.stringify(res.data.user));
+                    localStorage.setItem('language', res.language);
 
                     const role = res.data.user.role;
                     const intendedPage = sessionStorage.getItem('intendedPage');
                     sessionStorage.removeItem('intendedPage');
-                    
+
                     let redirectUrl = intendedPage;
-                    
+
                     if (!redirectUrl) {
                         if (role === 'cashier') {
                             redirectUrl = '/cashier-interface.html';
@@ -207,21 +292,29 @@
                         }
                     }
 
-                    console.log("Login successful - Redirecting to:", redirectUrl);
-                    showAlert(`Welcome, ${res.data.user.username}!`, 'success');
+                    const welcomeMsg = currentLanguage === 'fr' 
+                        ? `Bienvenue, ${res.data.user.username}!`
+                        : `Welcome, ${res.data.user.username}!`;
+                    showAlert(welcomeMsg, 'success');
                     setTimeout(() => {
                         window.location.href = redirectUrl;
                     }, 1500);
                 } else {
-                    showAlert('Login failed: ' + res.message, 'error');
+                    const errorMsg = currentLanguage === 'fr'
+                        ? 'Erreur de connexion: ' + (res.message || 'Identifiants invalides')
+                        : 'Login failed: ' + (res.message || 'Invalid credentials');
+                    showAlert(errorMsg, 'error');
                 }
             })
             .catch(e => {
-                showAlert('Error: ' + e.message, 'error');
+                const errorMsg = currentLanguage === 'fr'
+                    ? 'Erreur: ' + e.message
+                    : 'Error: ' + e.message;
+                showAlert(errorMsg, 'error');
             })
             .finally(() => {
                 loginBtn.disabled = false;
-                loginBtn.innerHTML = 'Sign In';
+                loginBtn.textContent = t.signinBtn;
             });
         }
 
@@ -237,6 +330,13 @@
             document.getElementById('password').value = password;
             document.getElementById('loginForm').dispatchEvent(new Event('submit'));
         }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            updateUIText();
+            document.querySelectorAll('.lang-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.lang === currentLanguage);
+            });
+        });
     </script>
 </body>
 </html>

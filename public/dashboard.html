@@ -56,7 +56,11 @@
         @media (max-width: 1024px) {
             .charts { grid-template-columns: 1fr; }
         }
+        .language-toggle { position: absolute; top: 15px; right: 20px; display: flex; gap: 8px; z-index: 1000; }
+        .lang-btn { padding: 6px 12px; border: 1px solid #bdc3c7; background: white; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 600; transition: all 0.3s; }
+        .lang-btn.active { background: #667eea; color: white; border-color: #667eea; }
     </style>
+    <script src="language.js"></script>
 </head>
 <body>
     <div class="container">
@@ -162,7 +166,7 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <script>
-        const API_URL = 'https://pharmsecure-api.onrender.com/api';
+        const API_URL = 'http://localhost:3000/api';
         let autoRefresh = true;
         let refreshInterval = null;
         let hourlySalesChart = null;

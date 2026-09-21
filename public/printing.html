@@ -413,7 +413,7 @@
     </div>
 
     <script>
-        const API_URL = 'https://pharmsecure-api.onrender.com/api/printing';
+        const API_URL = 'http://localhost:3000/api/printing';
         let currentOrderId = null;
 
         // Get token from localStorage
@@ -595,7 +595,7 @@ PharmSecure - Quality Healthcare
         // Load recent receipts
         async function loadProducts() {
             try {
-                const response = await fetch(`https://pharmsecure-api.onrender.com/api/products`, {
+                const response = await fetch(`http://localhost:3000/api/products`, {
                     headers: { "Authorization": `Bearer ${getToken()}` }
                 });
                 if (!response.ok) throw new Error("Failed to load products");
