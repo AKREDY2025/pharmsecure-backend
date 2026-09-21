@@ -33,7 +33,25 @@
                 loading: "Loading...",
                 noData: "No data available",
                 error: "Error",
-                success: "Success"
+                success: "Success",
+                todayRevenue: "Today's Revenue",
+                today: "Today",
+                transactions: "Transactions",
+                orders: "Orders",
+                averageOrder: "Average Order",
+                perOrder: "Per order",
+                maxOrder: "Max Order",
+                highest: "Highest",
+                hourlySales: "📈 Hourly Sales Today",
+                revenueTrend: "📊 Revenue Trend (30 Days)",
+                topProducts: "🏆 Top 10 Products Today",
+                product: "Product",
+                qtySold: "Qty Sold",
+                revenue: "Revenue",
+                unitPrice: "Unit Price",
+                refreshNow: "🔄 Refresh Now",
+                autoOn: "⏱ Auto (ON)",
+                autoOff: "⏱ Auto (OFF)"
             },
             fr: {
                 title: "PharmSecure",
@@ -57,7 +75,25 @@
                 loading: "Chargement...",
                 noData: "Aucune donnée disponible",
                 error: "Erreur",
-                success: "Succès"
+                success: "Succès",
+                todayRevenue: "Revenus d'Aujourd'hui",
+                today: "Aujourd'hui",
+                transactions: "Transactions",
+                orders: "Commandes",
+                averageOrder: "Commande Moyenne",
+                perOrder: "Par commande",
+                maxOrder: "Commande Maximale",
+                highest: "Plus Élevé",
+                hourlySales: "📈 Ventes Horaires Aujourd'hui",
+                revenueTrend: "📊 Tendance des Revenus (30 Jours)",
+                topProducts: "🏆 Top 10 Produits Aujourd'hui",
+                product: "Produit",
+                qtySold: "Qty Vendue",
+                revenue: "Revenu",
+                unitPrice: "Prix Unitaire",
+                refreshNow: "🔄 Rafraîchir Maintenant",
+                autoOn: "⏱ Auto (ACTIVÉ)",
+                autoOff: "⏱ Auto (DÉSACTIVÉ)"
             }
         };
 
@@ -208,49 +244,49 @@
             <!-- Summary Cards -->
             <div class="grid">
                 <div class="card highlight">
-                    <h3>Today's Revenue</h3>
+                    <h3 data-i18n="todayRevenue">Today's Revenue</h3>
                     <div class="value" id="totalRevenue">GHS 0.00</div>
-                    <div class="unit">Today</div>
+                    <div class="unit" data-i18n="today">Today</div>
                 </div>
                 <div class="card highlight">
-                    <h3>Transactions</h3>
+                    <h3 data-i18n="transactions">Transactions</h3>
                     <div class="value" id="transactionCount">0</div>
-                    <div class="unit">Orders</div>
+                    <div class="unit" data-i18n="orders">Orders</div>
                 </div>
                 <div class="card">
-                    <h3>Average Order</h3>
+                    <h3 data-i18n="averageOrder">Average Order</h3>
                     <div class="value" id="avgOrder">GHS 0.00</div>
-                    <div class="unit">Per order</div>
+                    <div class="unit" data-i18n="perOrder">Per order</div>
                 </div>
                 <div class="card warning">
-                    <h3>Max Order</h3>
+                    <h3 data-i18n="maxOrder">Max Order</h3>
                     <div class="value" id="maxOrder">GHS 0.00</div>
-                    <div class="unit">Highest</div>
+                    <div class="unit" data-i18n="highest">Highest</div>
                 </div>
             </div>
 
             <!-- Charts -->
             <div class="charts">
                 <div class="chart-container">
-                    <div class="chart-title">📈 Hourly Sales Today</div>
+                    <div class="chart-title" data-i18n="hourlySales">📈 Hourly Sales Today</div>
                     <canvas id="hourlySalesChart"></canvas>
                 </div>
                 <div class="chart-container">
-                    <div class="chart-title">📊 Revenue Trend (30 Days)</div>
+                    <div class="chart-title" data-i18n="revenueTrend">📊 Revenue Trend (30 Days)</div>
                     <canvas id="trendChart"></canvas>
                 </div>
             </div>
 
             <!-- Top Products Table -->
             <div class="table-container">
-                <div class="table-title">🏆 Top 10 Products Today</div>
+                <div class="table-title" data-i18n="topProducts">🏆 Top 10 Products Today</div>
                 <table>
                     <thead>
                         <tr>
-                            <th>Product</th>
-                            <th>Qty Sold</th>
-                            <th>Revenue</th>
-                            <th>Unit Price</th>
+                            <th data-i18n="product">Product</th>
+                            <th data-i18n="qtySold">Qty Sold</th>
+                            <th data-i18n="revenue">Revenue</th>
+                            <th data-i18n="unitPrice">Unit Price</th>
                         </tr>
                     </thead>
                     <tbody id="topProductsBody">
@@ -267,7 +303,7 @@
                         <tr>
                             <th>Seller</th>
                             <th>Transactions</th>
-                            <th>Revenue</th>
+                            <th data-i18n="revenue">Revenue</th>
                             <th>Avg Order</th>
                         </tr>
                     </thead>

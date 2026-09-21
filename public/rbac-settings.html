@@ -33,7 +33,9 @@
                 loading: "Loading...",
                 noData: "No data available",
                 error: "Error",
-                success: "Success"
+                success: "Success",
+                rbacTitle: "⚙️ Role-Based Access Control Settings",
+                saveRole: "💾 Save"
             },
             fr: {
                 title: "PharmSecure",
@@ -57,7 +59,9 @@
                 loading: "Chargement...",
                 noData: "Aucune donnée disponible",
                 error: "Erreur",
-                success: "Succès"
+                success: "Succès",
+                rbacTitle: "⚙️ Paramètres de Contrôle d'Accès par Rôle",
+                saveRole: "💾 Enregistrer"
             }
         };
 
@@ -173,7 +177,7 @@
                                 <button class="lang-btn active" onclick="setLanguage('en')" data-lang="en">EN</button>
                                 <button class="lang-btn" onclick="setLanguage('fr')" data-lang="fr">FR</button>
                             </div>
-                <h1>⚙️ Role-Based Access Control Settings</h1>
+                <h1 data-i18n="rbacTitle">⚙️ Role-Based Access Control Settings</h1>
                 <p style="color: #7f8c8d; font-size: 14px;">Configure which features each role can access</p>
             </div>
 
@@ -251,7 +255,7 @@
 
                 html += `
                         </div>
-                        <button class="btn" onclick="saveRole(${role.id})">💾 Save ${role.name}</button>
+                        <button class="btn" onclick="saveRole(${role.id})" data-i18n="saveRole">💾 Save ${role.name}</button>
                     </div>
                 `;
             });

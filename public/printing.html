@@ -33,7 +33,17 @@
                 loading: "Loading...",
                 noData: "No data available",
                 error: "Error",
-                success: "Success"
+                success: "Success",
+                printingTitle: "📄 Printing & Receipts",
+                totalReceipts: "Total Receipts",
+                todayReceipts: "Today's Receipts",
+                thisWeek: "This Week",
+                downloadPDF: "📥 Download PDF",
+                print: "🖨️ Print",
+                emailReceipt: "📧 Email Receipt",
+                smsReceipt: "📱 SMS Receipt",
+                generateLabels: "📥 Generate Labels",
+                refresh: "Refresh"
             },
             fr: {
                 title: "PharmSecure",
@@ -57,7 +67,17 @@
                 loading: "Chargement...",
                 noData: "Aucune donnée disponible",
                 error: "Erreur",
-                success: "Succès"
+                success: "Succès",
+                printingTitle: "📄 Impression et Reçus",
+                totalReceipts: "Total des Reçus",
+                todayReceipts: "Reçus d'Aujourd'hui",
+                thisWeek: "Cette Semaine",
+                downloadPDF: "📥 Télécharger PDF",
+                print: "🖨️ Imprimer",
+                emailReceipt: "📧 Reçu par Email",
+                smsReceipt: "📱 Reçu par SMS",
+                generateLabels: "📥 Générer les Étiquettes",
+                refresh: "Rafraîchir"
             }
         };
 
@@ -440,7 +460,7 @@
                                 <button class="lang-btn active" onclick="setLanguage('en')" data-lang="en">EN</button>
                                 <button class="lang-btn" onclick="setLanguage('fr')" data-lang="fr">FR</button>
                             </div>
-            <h1>📄 Printing & Receipts</h1>
+            <h1 data-i18n="printingTitle">📄 Printing & Receipts</h1>
             <div class="header-buttons">
                 <button class="nav-button" onclick="window.location.href='dashboard.html'">Dashboard</button>
                 <button class="nav-button" onclick="window.location.href='refunds.html'">Refunds</button>
@@ -453,23 +473,23 @@
             <h2 style="margin-bottom: 15px; color: #333;">Search Receipt</h2>
             <div class="search-input">
                 <input type="number" id="orderIdInput" placeholder="Enter Order ID" min="1">
-                <button onclick="searchReceipt()">🔍 Search</button>
-                <button class="nav-button" onclick="loadRecentReceipts()" style="background: #95a5a6;">Refresh</button>
+                <button onclick="searchReceipt()" data-i18n="search">🔍 Search</button>
+                <button class="nav-button" onclick="loadRecentReceipts()" style="background: #95a5a6;" data-i18n="refresh">Refresh</button>
             </div>
         </div>
 
         <!-- Statistics -->
         <div class="stats-grid">
             <div class="stat-card">
-                <h3>Total Receipts</h3>
+                <h3 data-i18n="totalReceipts">Total Receipts</h3>
                 <div class="number" id="totalReceipts">-</div>
             </div>
             <div class="stat-card">
-                <h3>Today's Receipts</h3>
+                <h3 data-i18n="todayReceipts">Today's Receipts</h3>
                 <div class="number" id="todayReceipts">-</div>
             </div>
             <div class="stat-card">
-                <h3>This Week</h3>
+                <h3 data-i18n="thisWeek">This Week</h3>
                 <div class="number" id="weekReceipts">-</div>
             </div>
         </div>
@@ -483,10 +503,10 @@
                         <span class="loading">Generating QR Code...</span>
                     </div>
                     <div class="action-buttons">
-                        <button class="action-button" onclick="downloadPDF()">📥 Download PDF</button>
+                        <button class="action-button" onclick="downloadPDF()" data-i18n="downloadPDF">📥 Download PDF</button>
                         <button class="action-button secondary" onclick="window.print()">🖨️ Print</button>
-                        <button class="action-button" onclick="showEmailDialog()">📧 Email Receipt</button>
-                        <button class="action-button" onclick="showSMSDialog()">📱 SMS Receipt</button>
+                        <button class="action-button" onclick="showEmailDialog()" data-i18n="emailReceipt">📧 Email Receipt</button>
+                        <button class="action-button" onclick="showSMSDialog()" data-i18n="smsReceipt">📱 SMS Receipt</button>
                     </div>
                 </div>
             </div>
@@ -500,7 +520,7 @@
                     <option value="">-- Select Product --</option>
                 </select>
                 <input type="number" id="labelQty" placeholder="Quantity (1-100)" min="1" max="100" value="5" style="width: 150px; padding: 10px; border: 1px solid #ccc; border-radius: 4px;">
-                <button class="action-button" onclick="generateBarcodeLabels()" style="padding: 10px 20px;">📥 Generate Labels</button>
+                <button class="action-button" onclick="generateBarcodeLabels()" style="padding: 10px 20px;" data-i18n="generateLabels">📥 Generate Labels</button>
             </div>
         </div>
 

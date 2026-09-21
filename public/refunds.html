@@ -33,7 +33,21 @@
                 loading: "Loading...",
                 noData: "No data available",
                 error: "Error",
-                success: "Success"
+                success: "Success",
+                refundsTitle: "💰 Refunds & Returns",
+                pending: "Pending",
+                approved: "Approved",
+                completed: "Completed",
+                totalRefunded: "Total Refunded",
+                orderId: "Order ID",
+                refundReason: "Refund Reason",
+                notes: "Notes",
+                pendingRefunds: "⏳ Pending Refunds",
+                refundHistory: "📋 Refund History",
+                newRefundRequest: "➕ New Refund Request",
+                submitRefund: "✅ Submit Refund Request",
+                approve: "✅ Approve",
+                reject: "❌ Reject"
             },
             fr: {
                 title: "PharmSecure",
@@ -57,7 +71,21 @@
                 loading: "Chargement...",
                 noData: "Aucune donnée disponible",
                 error: "Erreur",
-                success: "Succès"
+                success: "Succès",
+                refundsTitle: "💰 Remboursements et Retours",
+                pending: "En Attente",
+                approved: "Approuvé",
+                completed: "Complété",
+                totalRefunded: "Total Remboursé",
+                orderId: "ID de Commande",
+                refundReason: "Raison du Remboursement",
+                notes: "Notes",
+                pendingRefunds: "⏳ Remboursements en Attente",
+                refundHistory: "📋 Historique des Remboursements",
+                newRefundRequest: "➕ Nouvelle Demande de Remboursement",
+                submitRefund: "✅ Soumettre la Demande de Remboursement",
+                approve: "✅ Approuver",
+                reject: "❌ Rejeter"
             }
         };
 
@@ -204,35 +232,35 @@
                                 <button class="lang-btn active" onclick="setLanguage('en')" data-lang="en">EN</button>
                                 <button class="lang-btn" onclick="setLanguage('fr')" data-lang="fr">FR</button>
                             </div>
-                <h1>💰 Refunds & Returns</h1>
+                <h1 data-i18n="refundsTitle">💰 Refunds & Returns</h1>
                 <p style="color: #7f8c8d; font-size: 14px;">Manage customer refunds and return requests</p>
             </div>
 
             <!-- Stats -->
             <div class="grid">
                 <div class="card alert">
-                    <h3>Pending</h3>
+                    <h3 data-i18n="pending">Pending</h3>
                     <div class="value" id="pendingCount">0</div>
                 </div>
                 <div class="card success">
-                    <h3>Approved</h3>
+                    <h3 data-i18n="approved">Approved</h3>
                     <div class="value" id="approvedCount">0</div>
                 </div>
                 <div class="card">
-                    <h3>Completed</h3>
+                    <h3 data-i18n="completed">Completed</h3>
                     <div class="value" id="completedCount">0</div>
                 </div>
                 <div class="card">
-                    <h3>Total Refunded</h3>
+                    <h3 data-i18n="totalRefunded">Total Refunded</h3>
                     <div class="value" id="totalRefunded">GHS 0.00</div>
                 </div>
             </div>
 
             <!-- Tabs -->
             <div class="tabs">
-                <button class="tab active" onclick="switchTab('pending')">⏳ Pending Refunds</button>
-                <button class="tab" onclick="switchTab('history')">📋 Refund History</button>
-                <button class="tab" onclick="switchTab('request')">➕ New Refund Request</button>
+                <button class="tab active" onclick="switchTab('pending')" data-i18n="pendingRefunds">⏳ Pending Refunds</button>
+                <button class="tab" onclick="switchTab('history')" data-i18n="refundHistory">📋 Refund History</button>
+                <button class="tab" onclick="switchTab('request')" data-i18n="newRefundRequest">➕ New Refund Request</button>
             </div>
 
             <!-- Pending Refunds Tab -->
@@ -256,11 +284,11 @@
                 <div class="section-title">➕ Request New Refund</div>
                 <form onsubmit="submitRefundRequest(event)">
                     <div class="form-group">
-                        <label>Order ID</label>
+                        <label data-i18n="orderId">Order ID</label>
                         <input type="number" id="orderIdInput" required placeholder="Enter order number">
                     </div>
                     <div class="form-group">
-                        <label>Refund Reason</label>
+                        <label data-i18n="refundReason">Refund Reason</label>
                         <select id="refundReasonSelect" required>
                             <option value="">-- Select reason --</option>
                             <option value="DAMAGED">Damaged Product</option>
@@ -271,10 +299,10 @@
                         </select>
                     </div>
                     <div class="form-group">
-                        <label>Notes</label>
+                        <label data-i18n="notes">Notes</label>
                         <textarea id="notesInput" placeholder="Additional details..."></textarea>
                     </div>
-                    <button type="submit" class="btn btn-success">✅ Submit Refund Request</button>
+                    <button type="submit" class="btn btn-success" data-i18n="submitRefund">✅ Submit Refund Request</button>
                 </form>
             </div>
         </div>
@@ -380,8 +408,8 @@
                         <td>${r.refund_reason}</td>
                         <td>${date}</td>
                         <td>
-                            <button class="btn btn-success" onclick="approveRefund(${r.id})">✅ Approve</button>
-                            <button class="btn btn-danger" onclick="rejectRefund(${r.id})">❌ Reject</button>
+                            <button class="btn btn-success" onclick="approveRefund(${r.id})" data-i18n="approve">✅ Approve</button>
+                            <button class="btn btn-danger" onclick="rejectRefund(${r.id})" data-i18n="reject">❌ Reject</button>
                         </td>
                     </tr>
                 `;

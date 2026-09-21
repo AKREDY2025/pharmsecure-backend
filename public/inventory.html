@@ -33,7 +33,12 @@
                 loading: "Loading...",
                 noData: "No data available",
                 error: "Error",
-                success: "Success"
+                success: "Success",
+                inventoryTitle: "📦 Inventory Management",
+                totalItems: "Total Items",
+                lowStockAlerts: "Low Stock Alerts",
+                expiringSoon: "Expiring Soon",
+                refresh: "🔄 Refresh"
             },
             fr: {
                 title: "PharmSecure",
@@ -57,7 +62,12 @@
                 loading: "Chargement...",
                 noData: "Aucune donnée disponible",
                 error: "Erreur",
-                success: "Succès"
+                success: "Succès",
+                inventoryTitle: "📦 Gestion de l'Inventaire",
+                totalItems: "Nombre Total d'Articles",
+                lowStockAlerts: "Alertes de Stock Faible",
+                expiringSoon: "Expiration Prochaine",
+                refresh: "🔄 Rafraîchir"
             }
         };
 
@@ -195,24 +205,24 @@
                                 <button class="lang-btn active" onclick="setLanguage('en')" data-lang="en">EN</button>
                                 <button class="lang-btn" onclick="setLanguage('fr')" data-lang="fr">FR</button>
                             </div>
-                <h1>📦 Inventory Management</h1>
+                <h1 data-i18n="inventoryTitle">📦 Inventory Management</h1>
                 <p style="color: #7f8c8d; font-size: 14px;">Track stock levels, expiry dates, and low stock alerts</p>
             </div>
 
             <!-- Summary Cards -->
             <div class="grid">
                 <div class="card success">
-                    <h3>Total Items</h3>
+                    <h3 data-i18n="totalItems">Total Items</h3>
                     <div class="value" id="totalItems">0</div>
                     <div style="font-size: 12px; color: #7f8c8d;">In stock</div>
                 </div>
                 <div class="card alert">
-                    <h3>Low Stock Alerts</h3>
+                    <h3 data-i18n="lowStockAlerts">Low Stock Alerts</h3>
                     <div class="value" id="lowStockCount">0</div>
                     <div style="font-size: 12px; color: #7f8c8d;">Need reorder</div>
                 </div>
                 <div class="card warning">
-                    <h3>Expiring Soon</h3>
+                    <h3 data-i18n="expiringSoon">Expiring Soon</h3>
                     <div class="value" id="expiringCount">0</div>
                     <div style="font-size: 12px; color: #7f8c8d;">Next 30 days</div>
                 </div>
@@ -239,7 +249,7 @@
                 <div class="section-title">📊 Current Stock Levels</div>
                 <div class="filter-row">
                     <input type="text" id="searchStock" placeholder="Search by product name or SKU..." style="flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-                    <button class="btn" onclick="refreshStockLevels()">🔄 Refresh</button>
+                    <button class="btn" onclick="refreshStockLevels()" data-i18n="refresh">🔄 Refresh</button>
                 </div>
                 <div id="stockLevelsContainer">
                     <div class="loading">Loading stock levels...</div>

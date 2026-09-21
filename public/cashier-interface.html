@@ -33,7 +33,17 @@
                 loading: "Loading...",
                 noData: "No data available",
                 error: "Error",
-                success: "Success"
+                success: "Success",
+                cashierDashboard: "Cashier Dashboard",
+                cashierInterfaceTitle: "PharmSecure Cashier Interface",
+                paymentQueue: "Payment Queue",
+                selectOrder: "Select Order",
+                payment: "Payment",
+                paymentMethod: "Method:",
+                amountPaid: "Amount Paid (GHS):",
+                completeSale: "Complete Sale",
+                printReceipt: "Print Receipt",
+                nextOrder: "Next Order"
             },
             fr: {
                 title: "PharmSecure",
@@ -57,7 +67,17 @@
                 loading: "Chargement...",
                 noData: "Aucune donnée disponible",
                 error: "Erreur",
-                success: "Succès"
+                success: "Succès",
+                cashierDashboard: "Tableau de Bord Caissier",
+                cashierInterfaceTitle: "Interface Caissier PharmSecure",
+                paymentQueue: "File d'Attente de Paiement",
+                selectOrder: "Sélectionner la Commande",
+                payment: "Paiement",
+                paymentMethod: "Méthode:",
+                amountPaid: "Montant Payé (GHS):",
+                completeSale: "Terminer la Vente",
+                printReceipt: "Imprimer le Reçu",
+                nextOrder: "Prochaine Commande"
             }
         };
 
@@ -486,8 +506,8 @@
                 <small>Cashier</small>
             </div>
 
-            <h2>Cashier Dashboard</h2>
-            <button class="tab-button active" data-tab="payment-queue">Payment Queue</button>
+            <h2 data-i18n="cashierDashboard">Cashier Dashboard</h2>
+            <button class="tab-button active" data-tab="payment-queue" data-i18n="paymentQueue">Payment Queue</button>
             <button id="logoutBtn" style="background: #922b21; margin-top: 30px;">Logout</button>
         </div>
 
@@ -497,7 +517,7 @@
                                 <button class="lang-btn active" onclick="setLanguage('en')" data-lang="en">EN</button>
                                 <button class="lang-btn" onclick="setLanguage('fr')" data-lang="fr">FR</button>
                             </div>
-                <h1>PharmSecure Cashier Interface</h1>
+                <h1 data-i18n="cashierInterfaceTitle">PharmSecure Cashier Interface</h1>
                 <span id="queueCount" class="queue-badge">0 waiting</span>
                 <span id="timeDisplay" style="margin-left: 20px; color: #7f8c8d;"></span>
             </div>
@@ -519,7 +539,7 @@
 
                     <div>
                         <div class="order-detail" id="orderDetail">
-                            <h2>Select Order</h2>
+                            <h2 data-i18n="selectOrder">Select Order</h2>
                             <p style="color: #7f8c8d; font-size: 13px;">Click an order to process</p>
                         </div>
                     </div>
@@ -532,8 +552,8 @@
         <div class="modal-content">
             <div style="font-size: 18px; font-weight: bold; margin-bottom: 20px;">✓ Sale Completed</div>
             <div id="receiptContent" class="receipt"></div>
-            <button style="padding: 10px 20px; background: #c0392b; color: white; border: none; border-radius: 4px; cursor: pointer;" onclick="printReceipt()">Print Receipt</button>
-            <button style="padding: 10px 20px; background: #95a5a6; color: white; border: none; border-radius: 4px; cursor: pointer; margin-left: 10px;" onclick="closeSuccessModal()">Next Order</button>
+            <button style="padding: 10px 20px; background: #c0392b; color: white; border: none; border-radius: 4px; cursor: pointer;" onclick="printReceipt()" data-i18n="printReceipt">Print Receipt</button>
+            <button style="padding: 10px 20px; background: #95a5a6; color: white; border: none; border-radius: 4px; cursor: pointer; margin-left: 10px;" onclick="closeSuccessModal()" data-i18n="nextOrder">Next Order</button>
         </div>
     </div>
 
@@ -636,9 +656,9 @@
                 </div>
 
                 <div class="payment-section">
-                    <h3>Payment</h3>
+                    <h3 data-i18n="payment">Payment</h3>
                     <div class="form-group">
-                        <label>Method:</label>
+                        <label data-i18n="paymentMethod">Method:</label>
                         <select id="paymentMethod">
                             <option value="">-- Select --</option>
                             <option value="CASH">Cash</option>
@@ -647,7 +667,7 @@
                         </select>
                     </div>
                     <div class="form-group">
-                        <label>Amount Paid (GHS):</label>
+                        <label data-i18n="amountPaid">Amount Paid (GHS):</label>
                         <input type="number" id="amountPaid" placeholder="0.00" step="0.01" min="${parseFloat(o.total_amount || 0).toFixed(2)}" value="${parseFloat(o.total_amount || 0).toFixed(2)}">
                     </div>
                     <div id="changeDisplay" class="change-display" style="display:none;">
@@ -656,7 +676,7 @@
                 </div>
 
                 <div class="order-actions">
-                    <button class="btn-process" id="processBtn" onclick="processPayment()" disabled>Complete Sale</button>
+                    <button class="btn-process" id="processBtn" onclick="processPayment()" disabled data-i18n="completeSale">Complete Sale</button>
                 </div>
             `;
 
@@ -777,7 +797,7 @@ Thank you for your purchase!
             document.getElementById('successModal').classList.remove('show');
             selectedOrder = null;
             document.getElementById('orderDetail').innerHTML = `
-                <h2>Select Order</h2>
+                <h2 data-i18n="selectOrder">Select Order</h2>
                 <p style="color: #7f8c8d; font-size: 13px;">Click an order to process</p>
             `;
         }

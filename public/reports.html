@@ -33,7 +33,17 @@
                 loading: "Loading...",
                 noData: "No data available",
                 error: "Error",
-                success: "Success"
+                success: "Success",
+                reportsTitle: "📑 Business Reports",
+                startDate: "Start Date",
+                endDate: "End Date",
+                totalRevenue: "Total Revenue",
+                transactions: "Transactions",
+                avgOrder: "Avg Order",
+                totalTax: "Total Tax",
+                generateReport: "🔍 Generate Report",
+                exportCSV: "📥 Export CSV",
+                reset: "🔄 Reset"
             },
             fr: {
                 title: "PharmSecure",
@@ -57,7 +67,17 @@
                 loading: "Chargement...",
                 noData: "Aucune donnée disponible",
                 error: "Erreur",
-                success: "Succès"
+                success: "Succès",
+                reportsTitle: "📑 Rapports Commerciaux",
+                startDate: "Date de Début",
+                endDate: "Date de Fin",
+                totalRevenue: "Revenu Total",
+                transactions: "Transactions",
+                avgOrder: "Commande Moyenne",
+                totalTax: "Taxe Totale",
+                generateReport: "🔍 Générer un Rapport",
+                exportCSV: "📥 Exporter CSV",
+                reset: "🔄 Réinitialiser"
             }
         };
 
@@ -198,7 +218,7 @@
                                 <button class="lang-btn active" onclick="setLanguage('en')" data-lang="en">EN</button>
                                 <button class="lang-btn" onclick="setLanguage('fr')" data-lang="fr">FR</button>
                             </div>
-                <h1>📑 Business Reports</h1>
+                <h1 data-i18n="reportsTitle">📑 Business Reports</h1>
                 <p style="color: #7f8c8d; font-size: 14px;">Advanced filtering & analytics for better insights</p>
             </div>
 
@@ -208,16 +228,16 @@
             <div class="filter-section">
                 <div class="filter-row">
                     <div class="form-group">
-                        <label>Start Date</label>
+                        <label data-i18n="startDate">Start Date</label>
                         <input type="date" id="startDate" value="">
                     </div>
                     <div class="form-group">
-                        <label>End Date</label>
+                        <label data-i18n="endDate">End Date</label>
                         <input type="date" id="endDate" value="">
                     </div>
-                    <button class="btn" onclick="generateReport()">🔍 Generate Report</button>
-                    <button class="btn btn-export" onclick="exportCSV()">📥 Export CSV</button>
-                    <button class="btn btn-reset" onclick="resetFilters()">🔄 Reset</button>
+                    <button class="btn" onclick="generateReport()" data-i18n="generateReport">🔍 Generate Report</button>
+                    <button class="btn btn-export" onclick="exportCSV()" data-i18n="exportCSV">📥 Export CSV</button>
+                    <button class="btn btn-reset" onclick="resetFilters()" data-i18n="reset">🔄 Reset</button>
                 </div>
             </div>
 
@@ -337,19 +357,19 @@
                     const s = summary.data.summary;
                     document.getElementById('summaryContainer').innerHTML = `
                         <div class="summary-card">
-                            <h3>Total Revenue</h3>
+                            <h3 data-i18n="totalRevenue">Total Revenue</h3>
                             <div class="value">GHS ${parseFloat(s.total_revenue || 0).toFixed(2)}</div>
                         </div>
                         <div class="summary-card">
-                            <h3>Transactions</h3>
+                            <h3 data-i18n="transactions">Transactions</h3>
                             <div class="value">${s.transaction_count || 0}</div>
                         </div>
                         <div class="summary-card">
-                            <h3>Avg Order</h3>
+                            <h3 data-i18n="avgOrder">Avg Order</h3>
                             <div class="value">GHS ${parseFloat(s.avg_order_value || 0).toFixed(2)}</div>
                         </div>
                         <div class="summary-card">
-                            <h3>Total Tax</h3>
+                            <h3 data-i18n="totalTax">Total Tax</h3>
                             <div class="value">GHS ${parseFloat(s.total_tax || 0).toFixed(2)}</div>
                         </div>
                     `;
