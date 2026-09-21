@@ -8,6 +8,93 @@
             window.location.href = "/login.html";
         }
     })();
+    
+        // ==================== BILINGUAL SUPPORT ====================
+        const translations = {
+            en: {
+                title: "PharmSecure",
+                language: "English",
+                dashboard: "Dashboard",
+                sales: "Sales",
+                inventory: "Inventory",
+                reports: "Reports",
+                refunds: "Refunds",
+                staff: "Staff",
+                settings: "Settings",
+                printing: "Printing",
+                logout: "Logout",
+                search: "Search...",
+                save: "Save",
+                cancel: "Cancel",
+                delete: "Delete",
+                add: "Add",
+                edit: "Edit",
+                close: "Close",
+                loading: "Loading...",
+                noData: "No data available",
+                error: "Error",
+                success: "Success"
+            },
+            fr: {
+                title: "PharmSecure",
+                language: "Français",
+                dashboard: "Tableau de Bord",
+                sales: "Ventes",
+                inventory: "Inventaire",
+                reports: "Rapports",
+                refunds: "Remboursements",
+                staff: "Personnel",
+                settings: "Paramètres",
+                printing: "Impression",
+                logout: "Déconnexion",
+                search: "Rechercher...",
+                save: "Enregistrer",
+                cancel: "Annuler",
+                delete: "Supprimer",
+                add: "Ajouter",
+                edit: "Modifier",
+                close: "Fermer",
+                loading: "Chargement...",
+                noData: "Aucune donnée disponible",
+                error: "Erreur",
+                success: "Succès"
+            }
+        };
+
+        let currentLanguage = localStorage.getItem('language') || 'en';
+
+        function setLanguage(lang) {
+            currentLanguage = lang;
+            localStorage.setItem('language', lang);
+            updateUIText();
+            document.querySelectorAll('.lang-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.lang === lang);
+            });
+        }
+
+        function updateUIText() {
+            const t = translations[currentLanguage];
+            // Update all elements with data-i18n attribute
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.dataset.i18n;
+                if (t[key]) {
+                    if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+                        el.placeholder = t[key];
+                    } else {
+                        el.textContent = t[key];
+                    }
+                }
+            });
+        }
+
+        // Initialize on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            updateUIText();
+            document.querySelectorAll('.lang-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.lang === currentLanguage);
+            });
+        });
+
     </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -41,6 +128,30 @@
         .loading { text-align: center; padding: 40px; color: #7f8c8d; }
         .success { color: #27ae60; font-weight: bold; }
         .error { color: #e74c3c; font-weight: bold; }
+    
+        .language-toggle {
+            display: flex;
+            gap: 8px;
+        }
+        .lang-btn {
+            padding: 8px 14px;
+            border: 1px solid #bdc3c7;
+            background: white;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        .lang-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+        .lang-btn:hover {
+            border-color: #667eea;
+        }
+
     </style>
 </head>
 <body>
@@ -58,6 +169,10 @@
 
         <div class="main">
             <div class="header">
+            <div class="language-toggle">
+                                <button class="lang-btn active" onclick="setLanguage('en')" data-lang="en">EN</button>
+                                <button class="lang-btn" onclick="setLanguage('fr')" data-lang="fr">FR</button>
+                            </div>
                 <h1>⚙️ Role-Based Access Control Settings</h1>
                 <p style="color: #7f8c8d; font-size: 14px;">Configure which features each role can access</p>
             </div>
