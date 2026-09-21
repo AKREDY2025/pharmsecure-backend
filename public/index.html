@@ -1,43 +1,467 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#000000" />
-    <meta
-      name="description"
-      content="Web site created using create-react-app"
-    />
-    <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
-    <!--
-      manifest.json provides metadata used when your web app is installed on a
-      user's mobile device or desktop. See https://developers.google.com/web/fundamentals/web-app-manifest/
-    -->
-    <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
-    <!--
-      Notice the use of %PUBLIC_URL% in the tags above.
-      It will be replaced with the URL of the `public` folder during the build.
-      Only files inside the `public` folder can be referenced from the HTML.
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PharmSecure - Pharmacy POS & Management System</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --primary: #2C5282;
+            --secondary: #10B981;
+            --accent: #F59E0B;
+            --dark: #1F2937;
+            --light: #F9FAFB;
+            --gray: #6B7280;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: var(--dark);
+            background: var(--light);
+        }
+        header {
+            position: sticky;
+            top: 0;
+            background: white;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            z-index: 100;
+        }
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .logo-icon { width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; }
+        .logo-svg { width: 100%; height: 100%; }
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+        }
+        .language-toggle {
+            display: flex;
+            gap: 0.5rem;
+            background: var(--light);
+            padding: 0.4rem;
+            border-radius: 6px;
+        }
+        .lang-btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            background: transparent;
+            color: var(--gray);
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+        .lang-btn.active {
+            background: white;
+            color: var(--primary);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .sign-in-btn {
+            padding: 0.7rem 1.5rem;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .sign-in-btn:hover {
+            background: #1E3A5F;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(44, 82, 130, 0.3);
+        }
+        .hero {
+            background: linear-gradient(135deg, var(--primary) 0%, #1E3A5F 100%);
+            color: white;
+            padding: 6rem 2rem;
+            text-align: center;
+        }
+        .hero-content { max-width: 900px; margin: 0 auto; }
+        .hero h1 {
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            line-height: 1.2;
+            margin-bottom: 1rem;
+            font-weight: 800;
+        }
+        .hero-subtitle {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            opacity: 0.95;
+            line-height: 1.5;
+        }
+        .hero-cta { display: inline-flex; gap: 1rem; }
+        .hero-cta button {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .btn-primary { background: var(--accent); color: white; }
+        .btn-primary:hover { background: #FBBF24; transform: translateY(-3px); box-shadow: 0 10px 25px rgba(245, 158, 11, 0.3); }
+        .btn-secondary { background: transparent; color: white; border: 2px solid white; }
+        .btn-secondary:hover { background: rgba(255,255,255,0.1); }
+        .features { padding: 5rem 2rem; max-width: 1400px; margin: 0 auto; }
+        .section-title { text-align: center; font-size: 2.5rem; font-weight: 700; margin-bottom: 3rem; color: var(--primary); }
+        .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 2rem; }
+        .feature-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+        }
+        .feature-card:hover { transform: translateY(-8px); box-shadow: 0 12px 24px rgba(0,0,0,0.12); }
+        .feature-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+        }
+        .feature-card h3 { font-size: 1.3rem; margin-bottom: 0.8rem; color: var(--primary); }
+        .feature-card p { color: var(--gray); line-height: 1.6; font-size: 0.95rem; }
+        .stats { background: var(--primary); color: white; padding: 4rem 2rem; }
+        .stats-content { max-width: 1000px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 3rem; text-align: center; }
+        .stat-item h4 { font-size: 2.5rem; font-weight: 700; margin-bottom: 0.5rem; }
+        .stat-item p { opacity: 0.9; font-size: 1rem; }
+        .users-section { padding: 5rem 2rem; max-width: 1400px; margin: 0 auto; }
+        .users-title { text-align: center; font-size: 2rem; font-weight: 700; margin-bottom: 3rem; color: var(--primary); }
+        .users-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 2rem; }
+        .user-role {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            border-left: 4px solid var(--secondary);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            text-align: center;
+        }
+        .role-icon { font-size: 3rem; margin-bottom: 1rem; }
+        .user-role h4 { font-size: 1.2rem; color: var(--primary); margin-bottom: 0.5rem; }
+        .user-role p { color: var(--gray); font-size: 0.9rem; line-height: 1.5; }
+        .cta-section { background: linear-gradient(135deg, var(--secondary) 0%, #059669 100%); color: white; padding: 4rem 2rem; text-align: center; }
+        .cta-content { max-width: 600px; margin: 0 auto; }
+        .cta-section h2 { font-size: 2rem; margin-bottom: 1rem; font-weight: 700; }
+        .cta-section p { font-size: 1.1rem; margin-bottom: 2rem; opacity: 0.95; }
+        .cta-btn {
+            padding: 1rem 2.5rem;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .cta-btn:hover { background: #FBBF24; transform: translateY(-3px); box-shadow: 0 10px 25px rgba(245, 158, 11, 0.3); }
+        footer { background: var(--dark); color: white; padding: 2rem; text-align: center; }
+        footer p { opacity: 0.8; font-size: 0.9rem; }
+        @media (max-width: 768px) {
+            nav { flex-direction: column; gap: 1rem; }
+            .nav-right { width: 100%; justify-content: space-between; }
+            .hero { padding: 4rem 1.5rem; }
+            .hero h1 { font-size: 2rem; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="logo">
+                <div class="logo-icon">
+                    <svg class="logo-svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="47" y="15" width="6" height="70" fill="#2C5282"/>
+                        <rect x="35" y="45" width="30" height="6" fill="#2C5282"/>
+                        <path d="M 47 35 Q 30 35 25 45 Q 20 55 25 65 Q 30 75 47 75" stroke="#10B981" stroke-width="3" fill="none" stroke-linecap="round"/>
+                        <circle cx="22" cy="70" r="2.5" fill="#10B981"/>
+                        <path d="M 53 35 Q 70 35 75 45 Q 80 55 75 65 Q 70 75 53 75" stroke="#F59E0B" stroke-width="3" fill="none" stroke-linecap="round"/>
+                        <circle cx="78" cy="70" r="2.5" fill="#F59E0B"/>
+                    </svg>
+                </div>
+                <span>PharmSecure</span>
+            </div>
+            <div class="nav-right">
+                <div class="language-toggle">
+                    <button class="lang-btn active" id="langEN" onclick="setLanguage('en')">English</button>
+                    <button class="lang-btn" id="langFR" onclick="setLanguage('fr')">Français</button>
+                </div>
+                <button class="sign-in-btn" onclick="goToLogin();" id="headerSignIn">Sign In</button>
+            </div>
+        </nav>
+    </header>
 
-      Unlike "/favicon.ico" or "favicon.ico", "%PUBLIC_URL%/favicon.ico" will
-      work correctly both with client-side routing and a non-root public URL.
-      Learn how to configure a non-root public URL by running `npm run build`.
-    -->
-    <title>React App</title>
-  </head>
-  <body>
-    <noscript>You need to enable JavaScript to run this app.</noscript>
-    <div id="root"></div>
-    <!--
-      This HTML file is a template.
-      If you open it directly in the browser, you will see an empty page.
+    <section class="hero">
+        <div class="hero-content">
+            <h1 id="heroTitle">Pharmacy Made Simple</h1>
+            <p class="hero-subtitle" id="heroSubtitle">Complete POS, Inventory, and Management System. Trusted by pharmacies across Ghana.</p>
+            <div class="hero-cta">
+                <button class="btn-primary" onclick="goToLogin();" id="heroCTA">Get Started</button>
+                <button class="btn-secondary" onclick="scrollToSection('features')" id="learnMore">Learn More</button>
+            </div>
+        </div>
+    </section>
 
-      You can add webfonts, meta tags, or analytics to this file.
-      The build step will place the bundled scripts into the <body> tag.
+    <section class="features" id="features">
+        <h2 class="section-title" id="featuresTitle">Powerful Features</h2>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">🛒</div>
+                <h3 id="f1-title">Point of Sale</h3>
+                <p id="f1-desc">Fast, intuitive checkout system. Manage inventory in real-time as you sell.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📦</div>
+                <h3 id="f2-title">Inventory Management</h3>
+                <p id="f2-desc">Track stock levels, expiry dates, and low-stock alerts automatically.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📊</div>
+                <h3 id="f3-title">Sales Dashboard</h3>
+                <p id="f3-desc">Real-time analytics. Track revenue, top products, and seller performance.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📈</div>
+                <h3 id="f4-title">Advanced Reports</h3>
+                <p id="f4-desc">Detailed sales, profitability, and performance reports. Export to CSV.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">↩️</div>
+                <h3 id="f5-title">Refunds & Returns</h3>
+                <p id="f5-desc">Manage customer returns and refunds with full audit trail.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">👥</div>
+                <h3 id="f6-title">Staff Management</h3>
+                <p id="f6-desc">Create users, assign roles, and control permissions per person.</p>
+            </div>
+        </div>
+    </section>
 
-      To begin the development, run `npm start` or `yarn start`.
-      To create a production bundle, use `npm run build` or `yarn build`.
-    -->
-  </body>
+    <section class="stats">
+        <div class="stats-content">
+            <div class="stat-item">
+                <h4>9</h4>
+                <p id="stat1">Modules</p>
+            </div>
+            <div class="stat-item">
+                <h4>45+</h4>
+                <p id="stat2">API Endpoints</p>
+            </div>
+            <div class="stat-item">
+                <h4>2</h4>
+                <p id="stat3">Languages</p>
+            </div>
+            <div class="stat-item">
+                <h4>∞</h4>
+                <p id="stat4">Scalable</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="users-section">
+        <h2 class="users-title" id="rolesTitle">Built for Your Pharmacy</h2>
+        <div class="users-grid">
+            <div class="user-role">
+                <div class="role-icon">📱</div>
+                <h4 id="role1-title">Sellers</h4>
+                <p id="role1-desc">Quickly add items and transfer orders to cashiers for payment.</p>
+            </div>
+            <div class="user-role">
+                <div class="role-icon">💳</div>
+                <h4 id="role2-title">Cashiers</h4>
+                <p id="role2-desc">Process payments, print receipts, and manage the payment queue.</p>
+            </div>
+            <div class="user-role">
+                <div class="role-icon">📋</div>
+                <h4 id="role3-title">Managers</h4>
+                <p id="role3-desc">Track inventory, view reports, and monitor staff performance.</p>
+            </div>
+            <div class="user-role">
+                <div class="role-icon">⚙️</div>
+                <h4 id="role4-title">Admins</h4>
+                <p id="role4-desc">Full system control. Manage all users, roles, and settings.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="cta-section">
+        <div class="cta-content">
+            <h2 id="cta-title">Ready to Transform Your Pharmacy?</h2>
+            <p id="cta-desc">Sign in now and start managing your pharmacy efficiently.</p>
+            <button class="cta-btn" onclick="goToLogin();" id="ctaSignIn">Sign In</button>
+        </div>
+    </section>
+
+    <footer>
+        <p id="footerText">&copy; 2026 PharmSecure. All rights reserved.</p>
+    </footer>
+
+    <script>
+        const translations = {
+            en: {
+                headerSignIn: "Sign In",
+                heroTitle: "Pharmacy Made Simple",
+                heroSubtitle: "Complete POS, Inventory, and Management System. Trusted by pharmacies across Ghana.",
+                heroCTA: "Get Started",
+                learnMore: "Learn More",
+                featuresTitle: "Powerful Features",
+                f1Title: "Point of Sale",
+                f1Desc: "Fast, intuitive checkout system. Manage inventory in real-time as you sell.",
+                f2Title: "Inventory Management",
+                f2Desc: "Track stock levels, expiry dates, and low-stock alerts automatically.",
+                f3Title: "Sales Dashboard",
+                f3Desc: "Real-time analytics. Track revenue, top products, and seller performance.",
+                f4Title: "Advanced Reports",
+                f4Desc: "Detailed sales, profitability, and performance reports. Export to CSV.",
+                f5Title: "Refunds & Returns",
+                f5Desc: "Manage customer returns and refunds with full audit trail.",
+                f6Title: "Staff Management",
+                f6Desc: "Create users, assign roles, and control permissions per person.",
+                stat1: "Modules",
+                stat2: "API Endpoints",
+                stat3: "Languages",
+                stat4: "Scalable",
+                rolesTitle: "Built for Your Pharmacy",
+                role1Title: "Sellers",
+                role1Desc: "Quickly add items and transfer orders to cashiers for payment.",
+                role2Title: "Cashiers",
+                role2Desc: "Process payments, print receipts, and manage the payment queue.",
+                role3Title: "Managers",
+                role3Desc: "Track inventory, view reports, and monitor staff performance.",
+                role4Title: "Admins",
+                role4Desc: "Full system control. Manage all users, roles, and settings.",
+                ctaTitle: "Ready to Transform Your Pharmacy?",
+                ctaDesc: "Sign in now and start managing your pharmacy efficiently.",
+                ctaSignIn: "Sign In",
+                footerText: "© 2026 PharmSecure. All rights reserved."
+            },
+            fr: {
+                headerSignIn: "Connexion",
+                heroTitle: "La Pharmacie Simplifiée",
+                heroSubtitle: "Système complet de PDV, Inventaire et Gestion. Approuvé par les pharmacies du Ghana.",
+                heroCTA: "Commencer",
+                learnMore: "En Savoir Plus",
+                featuresTitle: "Fonctionnalités Puissantes",
+                f1Title: "Point de Vente",
+                f1Desc: "Système de paiement rapide et intuitif. Gérez votre inventaire en temps réel.",
+                f2Title: "Gestion d'Inventaire",
+                f2Desc: "Suivez les niveaux de stock, les dates d'expiration et les alertes automatiques.",
+                f3Title: "Tableau de Bord des Ventes",
+                f3Desc: "Analytique en temps réel. Suivez les revenus, produits populaires et performances.",
+                f4Title: "Rapports Avancés",
+                f4Desc: "Rapports détaillés de ventes, rentabilité et performance. Exportez en CSV.",
+                f5Title: "Remboursements et Retours",
+                f5Desc: "Gérez les retours clients et remboursements avec audit complet.",
+                f6Title: "Gestion du Personnel",
+                f6Desc: "Créez des utilisateurs, assignez les rôles, contrôlez les permissions.",
+                stat1: "Modules",
+                stat2: "Points de Terminaison API",
+                stat3: "Langues",
+                stat4: "Scalable",
+                rolesTitle: "Construit pour Votre Pharmacie",
+                role1Title: "Vendeurs",
+                role1Desc: "Ajoutez rapidement des articles et transférez les commandes aux caissiers.",
+                role2Title: "Caissiers",
+                role2Desc: "Traitez les paiements, imprimez les reçus, gérez la file d'attente.",
+                role3Title: "Gestionnaires",
+                role3Desc: "Suivez l'inventaire, visualisez les rapports, surveillez la performance.",
+                role4Title: "Administrateurs",
+                role4Desc: "Contrôle système complet. Gérez tous les utilisateurs et paramètres.",
+                ctaTitle: "Prêt à Transformer Votre Pharmacie?",
+                ctaDesc: "Connectez-vous maintenant et commencez à gérer efficacement.",
+                ctaSignIn: "Connexion",
+                footerText: "© 2026 PharmSecure. Tous droits réservés."
+            }
+        };
+
+        let currentLanguage = localStorage.getItem('language') || 'en';
+
+        function setLanguage(lang) {
+            currentLanguage = lang;
+            localStorage.setItem('language', lang);
+            updateUIText();
+            document.getElementById('langEN').classList.toggle('active', lang === 'en');
+            document.getElementById('langFR').classList.toggle('active', lang === 'fr');
+        }
+
+        function updateUIText() {
+            const t = translations[currentLanguage];
+            document.getElementById('headerSignIn').textContent = t.headerSignIn;
+            document.getElementById('heroTitle').textContent = t.heroTitle;
+            document.getElementById('heroSubtitle').textContent = t.heroSubtitle;
+            document.getElementById('heroCTA').textContent = t.heroCTA;
+            document.getElementById('learnMore').textContent = t.learnMore;
+            document.getElementById('featuresTitle').textContent = t.featuresTitle;
+            document.getElementById('f1-title').textContent = t.f1Title;
+            document.getElementById('f1-desc').textContent = t.f1Desc;
+            document.getElementById('f2-title').textContent = t.f2Title;
+            document.getElementById('f2-desc').textContent = t.f2Desc;
+            document.getElementById('f3-title').textContent = t.f3Title;
+            document.getElementById('f3-desc').textContent = t.f3Desc;
+            document.getElementById('f4-title').textContent = t.f4Title;
+            document.getElementById('f4-desc').textContent = t.f4Desc;
+            document.getElementById('f5-title').textContent = t.f5Title;
+            document.getElementById('f5-desc').textContent = t.f5Desc;
+            document.getElementById('f6-title').textContent = t.f6Title;
+            document.getElementById('f6-desc').textContent = t.f6Desc;
+            document.getElementById('stat1').textContent = t.stat1;
+            document.getElementById('stat2').textContent = t.stat2;
+            document.getElementById('stat3').textContent = t.stat3;
+            document.getElementById('stat4').textContent = t.stat4;
+            document.getElementById('rolesTitle').textContent = t.rolesTitle;
+            document.getElementById('role1-title').textContent = t.role1Title;
+            document.getElementById('role1-desc').textContent = t.role1Desc;
+            document.getElementById('role2-title').textContent = t.role2Title;
+            document.getElementById('role2-desc').textContent = t.role2Desc;
+            document.getElementById('role3-title').textContent = t.role3Title;
+            document.getElementById('role3-desc').textContent = t.role3Desc;
+            document.getElementById('role4-title').textContent = t.role4Title;
+            document.getElementById('role4-desc').textContent = t.role4Desc;
+            document.getElementById('cta-title').textContent = t.ctaTitle;
+            document.getElementById('cta-desc').textContent = t.ctaDesc;
+            document.getElementById('ctaSignIn').textContent = t.ctaSignIn;
+            document.getElementById('footerText').textContent = t.footerText;
+        }
+
+        function goToLogin() {
+            window.location.href = '/login.html';
+        }
+
+        function scrollToSection(sectionId) {
+            const section = document.getElementById(sectionId);
+            if (section) section.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            updateUIText();
+            document.getElementById('langEN').classList.toggle('active', currentLanguage === 'en');
+            document.getElementById('langFR').classList.toggle('active', currentLanguage === 'fr');
+        });
+    </script>
+</body>
 </html>
