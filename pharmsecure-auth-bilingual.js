@@ -17,7 +17,7 @@ router.post('/login', async (req, res) => {
   const token = jwt.sign({ id: user.id, username: user.username, role: user.role }, process.env.JWT_SECRET || 'key', { expiresIn: '24h' });
   await i18n.setUserLanguage(user.id, language);
   const pharmacy = await i18n.getPharmacyConfig(language);
-  sendSuccess(res, { token, user: { id: user.id, username, email: user.email, role: user.role, language }, pharmacy }, 'Login successful', language);
+  sendSuccess(res, { token, user: { id: user.id, username, email: user.email, role: user.role, language }, pharmacy }, 'Login successful');
 });
 router.get('/languages', (req, res) => {
   sendSuccess(res, { languages: i18n.getAvailableLanguages() });

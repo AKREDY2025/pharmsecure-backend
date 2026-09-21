@@ -4,6 +4,7 @@ const path = require('path');
 const cors = require("cors");
 const pool = require('./db');
 const jwt = require('jsonwebtoken');
+const { languageMiddleware } = require('./pharmsecure-language-middleware');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -11,6 +12,7 @@ const PORT = process.env.PORT || 3000;
 // Middleware
 app.use(express.json());
 app.use(cors());
+app.use(languageMiddleware);
 
 // Serve static files from public directory
 app.use(express.static(path.join(__dirname, 'public')));
