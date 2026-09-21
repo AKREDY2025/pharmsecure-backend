@@ -50,7 +50,12 @@
                 printBarcodeLabelsTitle: "🏷️ Print Barcode Labels",
                 recentReceipts: "📋 Recent Receipts",
                 orderId: "Order ID",
-                failedLoadReceipts: "Failed to load receipts"
+                failedLoadReceipts: "Failed to load receipts",
+                selectProduct: "-- Select Product --",
+                customer: "Customer",
+                amount: "Amount",
+                status: "Status",
+                action: "Action"
             },
             fr: {
                 title: "PharmSecure",
@@ -91,7 +96,12 @@
                 printBarcodeLabelsTitle: "🏷️ Imprimer les Étiquettes de Code-Barres",
                 recentReceipts: "📋 Reçus Récents",
                 orderId: "ID de Commande",
-                failedLoadReceipts: "Échec du chargement des reçus"
+                failedLoadReceipts: "Échec du chargement des reçus",
+                selectProduct: "-- Sélectionner un Produit --",
+                customer: "Client",
+                amount: "Montant",
+                status: "Statut",
+                action: "Action"
             }
         };
 
@@ -528,10 +538,10 @@
 
         <!-- Barcode Labels Section -->
         <div class="receipt-section">
-            <h2 style="margin: 0; margin-bottom: 15px;">🏷️ Print Barcode Labels</h2>
+            <h2 style="margin: 0; margin-bottom: 15px;" data-i18n="printBarcodeLabelsTitle">🏷️ Print Barcode Labels</h2>
             <div style="display: flex; gap: 10px; margin-bottom: 20px;">
                 <select id="productSelect" style="flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 4px;">
-                    <option value="">-- Select Product --</option>
+                    <option value="" data-i18n="selectProduct">-- Select Product --</option>
                 </select>
                 <input type="number" id="labelQty" placeholder="Quantity (1-100)" min="1" max="100" value="5" style="width: 150px; padding: 10px; border: 1px solid #ccc; border-radius: 4px;">
                 <button class="action-button" onclick="generateBarcodeLabels()" style="padding: 10px 20px;" data-i18n="generateLabels">📥 Generate Labels</button>
@@ -546,10 +556,10 @@
                     <tr>
                         <th data-i18n="orderId">Order ID</th>
                         <th>Date</th>
-                        <th>Customer</th>
-                        <th>Amount</th>
-                        <th>Status</th>
-                        <th>Action</th>
+                        <th data-i18n="customer">Customer</th>
+                        <th data-i18n="amount">Amount</th>
+                        <th data-i18n="status">Status</th>
+                        <th data-i18n="action">Action</th>
                     </tr>
                 </thead>
                 <tbody id="recentTable">
